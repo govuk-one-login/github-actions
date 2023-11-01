@@ -8,7 +8,7 @@ The actions are intended to be lightweight bits of functionality that can be re-
 
 Use the following syntax in your workflow:
 
-`uses: alphagov/di-github-actions/{action-directory}@{ref}`
+`uses: govuk-one-login/github-actions/{action-directory}@{ref}`
 
 The `ref` can be a specific branch, git ref or commit SHA.
 
@@ -19,7 +19,7 @@ jobs:
   job:
     steps:
       - name: Step
-        uses: alphagov/di-github-actions/beautify-branch-name@main
+        uses: govuk-one-login/github-actions/beautify-branch-name@main
 ```
 
 **Note:** It is preferable to use a specific SHA to prevent workflows from breaking when incompatible changes are
