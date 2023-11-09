@@ -1,0 +1,45 @@
+name: "Run a SonarCloud scan"
+description: "Run a SonarCloud scan on the repo and report results to the SonarCloud server"
+inputs:
+  args:
+    description: "Additional arguments to the sonarcloud scanner"
+    required: false
+  projectBaseDir:
+    description: "Set the sonar.projectBaseDir analysis property"
+    required: false
+  coverage-artifact:
+    description: "Name of the artifact containing the coverage report (lcov.info file)"
+    required: false
+  coverage-location:
+    description: "The directory where SonarCloud expects to find the coverage report (specified in the config file)"
+    required: false
+    default: coverage
+  github-token:
+    description: "The token to authenticate access to the GitHub repo - the value of secrets.GITHUB_TOKEN"
+    required: true
+  sonar-token:
+    description: "The token to authenticate access to SonarCloud"
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Pull repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Get coverage results
+      if: ${{ inputs.coverage-artifact != null }}
+      uses: actions/download-artifact@v3
+      with:
+        name: ${{ inputs.coverage-artifact }}
+        path: ${{ inputs.coverage-location }}
+
+    - name: Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      with:
+        args: ${{ inputs.args }}
+        projectBaseDir: ${{ inputs.projectBaseDir }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        SONAR_TOKEN: ${{ inputs.sonar-token }}
