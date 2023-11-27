@@ -1,0 +1,50 @@
+name: "Run CodeQL"
+description: "Run a CodeQL scan of the repository and report the results to GitHub"
+inputs:
+  # https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#changing-the-languages-that-are-analyzed
+  languages:
+    description: >-
+      Specify the languages used in the repo; a newline-, space- or comma-delimited list.
+      CodeQL supports cpp, csharp, go, java, javascript, python, ruby
+    required: false
+    default: javascript-typescript
+  autobuild:
+    description: >-
+      Attempt to automatically build any compiled languages.
+      If this fails, add a step to manually build them before running this action.
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Pull repository
+      if: ${{ inputs.autobuild == 'true' }}
+      uses: actions/checkout@v3
+
+    - name: Parse languages
+      id: get-languages
+      shell: bash
+      env:
+        LANGUAGES: ${{ inputs.languages }}
+      run: |
+        read -ra languages < <(xargs <<< "$LANGUAGES" | tr "," " ")
+        echo "languages=$(IFS="," && echo "${languages[*]}")" >> "$GITHUB_OUTPUT"
+
+      # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ steps.get-languages.outputs.languages }}
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
+        # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+      # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
+      # If this step fails, then you should disable it and run the build manually
+    - name: Autobuild
+      if: ${{ inputs.autobuild == 'true' }}
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@v2
