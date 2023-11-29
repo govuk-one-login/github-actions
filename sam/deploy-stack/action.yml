@@ -44,6 +44,9 @@ inputs:
   artifact-name:
     description: "The name of the distribution artifact to download"
     required: false
+  artifact-path:
+    description: "The path at which the artifact contents should be placed"
+    required: false
 outputs:
   stack-name:
     description: "The deployed stack name"
@@ -66,6 +69,7 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
 
     - name: Validate SAM template
       if: ${{ inputs.template != null }}
