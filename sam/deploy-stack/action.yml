@@ -15,7 +15,7 @@ inputs:
     description: "Stack name prefix to use when deriving the name from the branch name"
     required: false
   s3-prefix:
-    description: "A prefix to use when uploading deployment artifacts"
+    description: "A prefix to use when uploading deployment artifacts; by default the same as the stack prefix"
     required: false
   sam-deployment-bucket:
     description: "S3 bucket used to store the deployment artifacts"
@@ -149,8 +149,8 @@ runs:
       shell: bash
       env:
         TEMPLATE: ${{ inputs.template }}
-        S3_PREFIX: ${{ inputs.s3-prefix }}
         S3_BUCKET: ${{ inputs.sam-deployment-bucket }}
+        S3_PREFIX: ${{ inputs.s3-prefix || inputs.stack-name-prefix }}
         DISABLE_ROLLBACK: ${{ inputs.disable-rollback == 'true' || '' }}
         PARAMETERS: ${{ steps.parse-parameters.outputs.parameters }}
         TAGS: ${{ steps.parse-tags.outputs.tags }}
