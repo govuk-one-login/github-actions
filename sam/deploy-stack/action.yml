@@ -48,6 +48,9 @@ inputs:
     description: "The path at which the artifact contents should be placed"
     required: false
 outputs:
+  aws-region:
+    description: "The region in which the stack was deployed"
+    value: ${{ inputs.aws-region }}
   stack-name:
     description: "The deployed stack name"
     value: ${{ steps.set-stack-name.outputs.stack-name }}
