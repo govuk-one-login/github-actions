@@ -15,6 +15,10 @@ inputs:
     description: "Delete a stack only if it is in one of the failed states"
     required: false
     default: "false"
+  verbose:
+    description: "Print all output messages"
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
@@ -32,3 +36,4 @@ runs:
       env:
         STACK_NAMES: ${{ inputs.stack-names }}
         ONLY_FAILED: ${{ inputs.only-if-failed == 'true' }}
+        VERBOSE: ${{ inputs.verbose == 'true' }}

@@ -5,8 +5,9 @@ base_dir="$(dirname "${BASH_SOURCE[0]}")"
 report="$base_dir"/../../report-step-result/print-list.sh
 failed=()
 
-: "${STACK_NAMES}" # Names of the stacks to delete (space or newline-delimited string)
-: "${ONLY_FAILED}" # Whether to only delete stacks in one of the failed states
+: "${STACK_NAMES}"    # Names of the stacks to delete (space or newline-delimited string)
+: "${ONLY_FAILED}"    # Whether to only delete stacks in one of the failed states
+: "${VERBOSE:=false}" # Whether to print messages for non-deleted stacks
 
 stacks=$("$base_dir"/check-stacks-exist.sh)
 missing=$(jq --raw-output '."missing-stacks"' <<< "$stacks")
@@ -29,8 +30,13 @@ for stack in "${stacks[@]}"; do
   sam delete --no-prompts --region "$AWS_REGION" --stack-name "$stack" && deleted+=("$stack") || failed+=("$stack")
 done
 
-VALUES=${missing[*]} MESSAGE="Non-existent stacks" SINGLE_MESSAGE="Stack %s does not exist" $report
-VALUES=${ignored[*]} MESSAGE="Ignored stacks in a good state" SINGLE_MESSAGE="Ignored stack %s in a good state" $report
+$VERBOSE && step_summary=$GITHUB_STEP_SUMMARY
+
+VALUES=${missing[*]} MESSAGE="Non-existent stacks" SINGLE_MESSAGE="Stack %s does not exist" $report |
+  tee -a "${step_summary[@]}"
+
+VALUES=${ignored[*]} MESSAGE="Ignored stacks in a good state" SINGLE_MESSAGE="Ignored stack %s in a good state" $report |
+  tee -a "${step_summary[@]}"
 
 VALUES=${deleted[*]} MESSAGE="🚮 Deleted stacks" SINGLE_MESSAGE="🚮 Deleted stack %s" $report |
   tee -a "$GITHUB_STEP_SUMMARY"
