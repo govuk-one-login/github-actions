@@ -15,12 +15,16 @@ inputs:
     description: "Delete a stack only if it is in one of the failed states"
     required: false
     default: "false"
+  verbose:
+    description: "Print all output messages"
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
     - name: Assume AWS Role
       if: ${{ inputs.aws-role-arn != null }}
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
@@ -32,3 +36,4 @@ runs:
       env:
         STACK_NAMES: ${{ inputs.stack-names }}
         ONLY_FAILED: ${{ inputs.only-if-failed == 'true' }}
+        VERBOSE: ${{ inputs.verbose == 'true' }}

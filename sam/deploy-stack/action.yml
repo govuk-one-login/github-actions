@@ -15,7 +15,7 @@ inputs:
     description: "Stack name prefix to use when deriving the name from the branch name"
     required: false
   s3-prefix:
-    description: "A prefix to use when uploading deployment artifacts"
+    description: "A prefix to use when uploading deployment artifacts; by default the same as the stack prefix"
     required: false
   sam-deployment-bucket:
     description: "S3 bucket used to store the deployment artifacts"
@@ -44,10 +44,16 @@ inputs:
   artifact-name:
     description: "The name of the distribution artifact to download"
     required: false
+  artifact-path:
+    description: "The path at which the artifact contents should be placed"
+    required: false
 outputs:
+  aws-region:
+    description: "The region in which the stack was deployed"
+    value: ${{ inputs.aws-region }}
   stack-name:
     description: "The deployed stack name"
-    value: ${{ env.STACK_NAME }}
+    value: ${{ steps.set-stack-name.outputs.stack-name }}
   stack-url:
     description: "The URL of the deployed stack in the AWS console"
     value: ${{ steps.set-stack-name.outputs.stack-url }}
@@ -66,6 +72,7 @@ runs:
       uses: actions/download-artifact@v3
       with:
         name: ${{ inputs.artifact-name }}
+        path: ${{ inputs.artifact-path }}
 
     - name: Validate SAM template
       if: ${{ inputs.template != null }}
@@ -78,7 +85,7 @@ runs:
 
     - name: Assume AWS Role
       if: ${{ inputs.aws-role-arn != null }}
-      uses: aws-actions/configure-aws-credentials@v2
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         aws-region: ${{ inputs.aws-region }}
@@ -130,6 +137,7 @@ runs:
       run: |
         url="https://${AWS_REGION}.console.aws.amazon.com/cloudformation/home#/stacks/stackinfo?stackId=${STACK_NAME}"
         echo "stack-url=$url" >> "$GITHUB_OUTPUT"
+        echo "stack-name=$STACK_NAME" >> "$GITHUB_OUTPUT"
         echo "STACK_NAME=$STACK_NAME" >> "$GITHUB_ENV"
 
     - name: Delete failed stack
@@ -145,8 +153,8 @@ runs:
       shell: bash
       env:
         TEMPLATE: ${{ inputs.template }}
-        S3_PREFIX: ${{ inputs.s3-prefix }}
         S3_BUCKET: ${{ inputs.sam-deployment-bucket }}
+        S3_PREFIX: ${{ inputs.s3-prefix || inputs.stack-name-prefix }}
         DISABLE_ROLLBACK: ${{ inputs.disable-rollback == 'true' || '' }}
         PARAMETERS: ${{ steps.parse-parameters.outputs.parameters }}
         TAGS: ${{ steps.parse-tags.outputs.tags }}
