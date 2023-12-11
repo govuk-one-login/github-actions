@@ -7,6 +7,7 @@ inputs:
   projectBaseDir:
     description: "Set the sonar.projectBaseDir analysis property"
     required: false
+    default: ${{ github.workspace }}
   coverage-artifact:
     description: "Name of the artifact containing the coverage report (lcov.info file)"
     required: false
