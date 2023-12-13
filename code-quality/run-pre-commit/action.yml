@@ -5,6 +5,10 @@ inputs:
     description: "Run hooks on all files in the repo when running on a PR; default behaviour when running on a branch"
     required: false
     default: "false"
+  pull-repository:
+    description: "Pull the repository before running pre-commit"
+    required: false
+    default: "true"
   args:
     description: "Extra arguments to pass to the pre-commit program"
     required: false
@@ -27,6 +31,7 @@ runs:
         echo "files=${files:---all-files}" >> "$GITHUB_OUTPUT"
 
     - name: Pull repository
+      if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v3
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
