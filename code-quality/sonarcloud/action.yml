@@ -21,10 +21,15 @@ inputs:
   sonar-token:
     description: "The token to authenticate access to SonarCloud"
     required: true
+  pull-repository:
+    description: "Pull the repository before running the scan"
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
     - name: Pull repository
+      if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
