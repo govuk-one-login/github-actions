@@ -26,8 +26,9 @@ inputs:
     required: false
     default: "false"
   cache-key:
-    description: "Key to use for caching SAM dependencies. Caching is disabled if the key is not provided."
+    description: "Customise the key to use for caching SAM dependencies"
     required: false
+    default: build
   disable-parallel:
     description: "Set to true to build the resources sequentially"
     required: false
@@ -56,14 +57,11 @@ runs:
       run: $VALIDATE
 
     - name: Cache SAM dependencies
-      if: ${{ inputs.cache-key != null }}
       uses: actions/cache@v3
       with:
-        key: ${{ runner.os }}-sam-${{ inputs.cache-key }}-${{ hashFiles('**/package-lock.json', inputs.template) }}
+        key: ${{ runner.os }}-sam-${{ inputs.cache-key }}-${{ github.head_ref || github.ref_name }}
         restore-keys: ${{ runner.os }}-sam-${{ inputs.cache-key }}-
-        path: |
-          .aws-sam
-          !.aws-sam/build
+        path: .aws-sam
 
     - name: Build SAM Application
       shell: bash
