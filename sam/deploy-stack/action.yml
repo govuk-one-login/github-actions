@@ -159,6 +159,10 @@ runs:
         ONLY_FAILED: true
         STACK_NAMES: ${{ env.STACK_NAME }}
 
+    - name: Print SAM version
+      shell: bash
+      run: sam --version
+
     - name: Deploy SAM stack
       id: deploy-stack
       shell: bash
