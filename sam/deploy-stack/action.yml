@@ -14,6 +14,10 @@ inputs:
   stack-name-prefix:
     description: "Stack name prefix to use when deriving the name from the branch name"
     required: false
+  stack-name-length-limit:
+    description: "Maximum length of the generated stack name if it needs to be shorter than the allowed max length"
+    required: false
+    default: 128
   s3-prefix:
     description: "A prefix to use when uploading deployment artifacts; by default the same as the stack prefix"
     required: false
@@ -130,9 +134,9 @@ runs:
       shell: bash
       env:
         DOWNCASE: true
-        LENGTH_LIMIT: 128
         REPLACE_UNDERSCORES: true
         PREFIX: ${{ inputs.stack-name-prefix }}
+        LENGTH_LIMIT: ${{ inputs.stack-name-length-limit }}
         TRANSFORM: ${{ github.action_path }}/../../scripts/transform-branch-name.sh
       run: |
         stack_name=$($TRANSFORM)
