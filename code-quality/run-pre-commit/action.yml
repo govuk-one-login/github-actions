@@ -62,6 +62,13 @@ runs:
       run: echo "::group::pip output" && pip install pre-commit && echo "::endgroup::"
       shell: bash
 
+    - name: Cache pre-commit dependencies
+      uses: actions/cache@v3
+      with:
+        key: ${{ runner.os }}-pre-commit-${{ github.head_ref || github.ref_name }}
+        restore-keys: ${{ runner.os }}-pre-commit-
+        path: ~/.cache/pre-commit
+
     - name: Run pre-commit
       shell: bash
       env:
