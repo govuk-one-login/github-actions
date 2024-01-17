@@ -5,6 +5,10 @@ inputs:
     description: "Run hooks on all files in the repo when running on a PR; default behaviour when running on a branch"
     required: false
     default: "false"
+  install-dependencies:
+    description: "Install dev packages from package.json - this is needed for hooks which have dependencies"
+    required: false
+    default: "false"
   pull-repository:
     description: "Pull the repository before running pre-commit"
     required: false
@@ -42,6 +46,17 @@ runs:
         python-version: 3.x
         cache-dependency-path: ./.github/workflows
         cache: pip
+
+    - name: Set up Node.js
+      if: ${{ inputs.install-dependencies == 'true' }}
+      uses: actions/setup-node@v4
+      with:
+        cache: npm
+
+    - name: Install dependencies
+      if: ${{ inputs.install-dependencies == 'true' }}
+      shell: bash
+      run: npm ci --include dev
 
     - name: Install pre-commit
       run: echo "::group::pip output" && pip install pre-commit && echo "::endgroup::"
