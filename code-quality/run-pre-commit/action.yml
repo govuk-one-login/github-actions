@@ -9,6 +9,10 @@ inputs:
     description: "Install dev packages from package.json - this is needed for hooks which have dependencies"
     required: false
     default: "false"
+  package-manager:
+    description: "The package manager to use to install dependencies - npm or yarn"
+    required: false
+    default: npm
   pull-repository:
     description: "Pull the repository before running pre-commit"
     required: false
@@ -51,12 +55,15 @@ runs:
       if: ${{ inputs.install-dependencies == 'true' }}
       uses: actions/setup-node@v4
       with:
-        cache: npm
+        cache: ${{ inputs.package-manager }}
 
     - name: Install dependencies
       if: ${{ inputs.install-dependencies == 'true' }}
       shell: bash
-      run: npm ci --include dev
+      env:
+        PKG_MGR: ${{ inputs.package-manager }}
+      run: |
+        [[ $PKG_MGR == npm ]] && npm ci || yarn install --frozen-lockfile
 
     - name: Install pre-commit
       run: echo "::group::pip output" && pip install pre-commit && echo "::endgroup::"
