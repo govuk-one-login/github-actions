@@ -11,6 +11,9 @@ inputs:
   base-dir:
     description: "Resolve relative paths to lambda functions' source code with respect to this folder"
     required: false
+  source-dir:
+    description: "Source code directory to use as a cache key when building the SAM application"
+    required: false
   artifact-name:
     description: "Name of the artifact to upload"
     required: false
@@ -25,8 +28,8 @@ inputs:
     description: "Use SAM beta features when building an application"
     required: false
     default: "false"
-  cache-key:
-    description: "Customise the key to use for caching SAM dependencies"
+  cache-name:
+    description: "Customise the key used for caching SAM dependencies"
     required: false
     default: build
   disable-parallel:
@@ -41,12 +44,18 @@ outputs:
   artifact-name:
     description: "Pass through the artifact name"
     value: ${{ inputs.artifact-name }}
+  cache-key:
+    description: "The cache key used when building the SAM application"
+    value: ${{ steps.get-cache-key.outputs.cache-key }}
+  cache-restore-keys:
+    description: "The cache restore keys used when building the SAM application"
+    value: ${{ steps.get-cache-key.outputs.restore-keys }}
 runs:
   using: composite
   steps:
     - name: Pull repository
       if: ${{ inputs.pull-repository == 'true' }}
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Validate SAM template
       shell: bash
@@ -56,11 +65,23 @@ runs:
         VALIDATE: ${{ github.action_path }}/../../scripts/aws/sam/validate-template.sh
       run: $VALIDATE
 
+    - name: Get cache key
+      id: get-cache-key
+      shell: bash
+      env:
+        OS: ${{ runner.os }}
+        CACHE_NAME: ${{ inputs.cache-name }}
+        HASH: ${{ hashFiles(inputs.template || '**/template.y*ml', inputs.source-dir) }}
+      run: |
+        restore_key=$OS-sam-$CACHE_NAME
+        echo "cache-key=$restore_key-$HASH" >> "$GITHUB_OUTPUT"
+        echo "restore-keys=$restore_key-" >> "$GITHUB_OUTPUT"
+
     - name: Cache SAM dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        key: ${{ runner.os }}-sam-${{ inputs.cache-key }}-${{ github.head_ref || github.ref_name }}
-        restore-keys: ${{ runner.os }}-sam-${{ inputs.cache-key }}-
+        key: ${{ steps.get-cache-key.outputs.cache-key }}
+        restore-keys: ${{ steps.get-cache-key.outputs.restore-keys }}
         path: .aws-sam
 
     - name: Build SAM Application
@@ -69,19 +90,17 @@ runs:
         TEMPLATE_FILE: ${{ inputs.template }}
         BETA_FEATURES: ${{ inputs.enable-beta-features == 'true' }}
         PARALLEL: ${{ inputs.disable-parallel == 'false' }}
-        CACHE: ${{ inputs.cache-key != 'null' }}
         BASE_DIR: ${{ inputs.base-dir }}
       run: |
-        sam build \
+        sam build --cached \
           ${TEMPLATE_FILE:+--template-file "$TEMPLATE_FILE"} \
           ${BASE_DIR:+--base-dir "$BASE_DIR"} \
           "$($PARALLEL && echo "--parallel")" \
-          "$($CACHE && echo "--cached" || echo "--no-cached")" \
           "$($BETA_FEATURES && echo "--beta-features")"
 
     - name: Archive SAM distribution artifact
       if: ${{ inputs.upload-artifact && inputs.artifact-name != null }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
         retention-days: 3

@@ -13,12 +13,12 @@ runs:
   using: composite
   steps:
     - name: Pull repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 
     - name: Set up Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 

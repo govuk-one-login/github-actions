@@ -31,7 +31,7 @@ runs:
         echo "MERGING=$merging" >> "$GITHUB_ENV"
 
     - name: Pull repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 

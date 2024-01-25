@@ -65,11 +65,11 @@ runs:
 
     - name: Pull repository
       if: ${{ steps.check-artifact-exists.outputs.artifact-version == null && inputs.pull-repository == 'true' }}
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Get distribution artifact
       if: ${{ steps.check-artifact-exists.outputs.artifact-version == null && inputs.artifact-name != null }}
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.artifact-name }}
 
