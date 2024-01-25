@@ -28,7 +28,7 @@ runs:
       env:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
-        [[ $PKG_MGR == npm ]] && npm ci || yarn install --frozen-lockfile
+        [[ $PKG_MGR == npm ]] && npm ci --include-workspace-root || yarn install --frozen-lockfile
 
     - name: Run script
       shell: bash
