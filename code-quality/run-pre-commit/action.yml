@@ -70,7 +70,7 @@ runs:
       shell: bash
 
     - name: Cache pre-commit dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key: ${{ runner.os }}-pre-commit-${{ github.head_ref || github.ref_name }}
         restore-keys: ${{ runner.os }}-pre-commit-

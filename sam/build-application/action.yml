@@ -78,7 +78,7 @@ runs:
         echo "restore-keys=$restore_key-" >> "$GITHUB_OUTPUT"
 
     - name: Cache SAM dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         key: ${{ steps.get-cache-key.outputs.cache-key }}
         restore-keys: ${{ steps.get-cache-key.outputs.restore-keys }}
