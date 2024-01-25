@@ -45,10 +45,16 @@ inputs:
     description: "Pull the repository before uploading the package"
     required: false
     default: "true"
-  cache-key:
-    description: "Customise the key to use for caching SAM dependencies"
+  cache-name:
+    description: "Customise the key to use for caching SAM dependencies when no cache key is provided"
     required: false
     default: build
+  cache-key:
+    description: "The cache key used when building the SAM application"
+    required: false
+  cache-restore-keys:
+    description: "The cache restored keys used when building the SAM application"
+    required: false
   artifact-name:
     description: "The name of the distribution artifact to download"
     required: false
@@ -78,8 +84,8 @@ runs:
     - name: Cache SAM dependencies
       uses: actions/cache@v3
       with:
-        key: ${{ runner.os }}-sam-${{ inputs.cache-key }}-${{ github.head_ref || github.ref_name }}
-        restore-keys: ${{ runner.os }}-sam-${{ inputs.cache-key }}-
+        key: ${{ inputs.cache-key || format('{0}-{1}-{2}-{3}', runner.os, 'sam', inputs.cache-name, hashFiles(inputs.template || '**/template.y*ml')) }}
+        restore-keys: ${{ inputs.cache-restore-keys || format('{0}-{1}-{2}-', runner.os, 'sam', inputs.cache-name) }}
         path: .aws-sam
 
     - name: Get distribution artifact
