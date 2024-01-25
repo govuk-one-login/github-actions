@@ -11,6 +11,9 @@ inputs:
     description: "The package manager to use - npm or yarn"
     required: false
     default: npm
+  working-directory:
+    description: "The working directory to use"
+    required: false
 runs:
   using: composite
   steps:
@@ -24,6 +27,7 @@ runs:
         cache: ${{ inputs.package-manager }}
 
     - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         PKG_MGR: ${{ inputs.package-manager }}
@@ -31,6 +35,7 @@ runs:
         [[ $PKG_MGR == npm ]] && npm ci --include-workspace-root || yarn install --frozen-lockfile
 
     - name: Run script
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         COMMAND: ${{ inputs.script }}
