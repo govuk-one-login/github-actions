@@ -45,7 +45,7 @@ runs:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: 3.x
         cache-dependency-path: ./.github/workflows

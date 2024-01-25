@@ -18,7 +18,7 @@ runs:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 
     - name: Set up Node
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         cache: npm
 
