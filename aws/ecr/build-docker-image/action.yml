@@ -127,7 +127,7 @@ runs:
 
     - name: Pull repository
       if: ${{ steps.check-image-exists.outputs.image-digest == null && inputs.pull-repository == 'true' }}
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Get distribution artifact
       if: ${{ steps.check-image-exists.outputs.image-digest == null && inputs.artifact-name != null }}
