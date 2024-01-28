@@ -1,0 +1,45 @@
+name: "Wait for an artifact"
+description: |
+  Wait for a named artifact to be uploaded for the current branch and
+  head SHA of the trigger event in any workflow in the repo
+inputs:
+  artifact-name:
+    description: "The name of the artifact to await"
+    required: true
+  github-token:
+    description: "The token to authenticate to the GitHub API - the value of secrets.GITHUB_TOKEN"
+    required: true
+  exclude-current-run:
+    description: "Ignore artifacts in the current workflow"
+    required: false
+    default: "false"
+  error-on-missing:
+    description: "Exit the action with an error status if the artifact hasn't been found"
+    required: false
+    default: "false"
+  run-id:
+    description: "Only search for the artifact in the specified workflow run (ID or workflow file name)"
+    required: false
+outputs:
+  run-id:
+    description: "The ID of the workflow run where the artifact is available"
+    value: ${{ steps.await.outputs.run-id }}
+  artifact-name:
+    description: "Pass through the artifact name"
+    value: ${{ inputs.artifact-name }}
+runs:
+  using: composite
+  steps:
+    - name: Await artifact
+      id: await
+      shell: bash
+      env:
+        RUN_ID: ${{ inputs.run-id }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        ERROR_STATUS: ${{ inputs.error-on-missing == 'true' }}
+        EXCLUDE_CURRENT_RUN: ${{ inputs.exclude-current-run == 'true' }}
+        AWAIT_ARTIFACT: ${{ github.action_path }}/../../scripts/gha/await-artifact.sh
+      run: |
+        $AWAIT_ARTIFACT && exit 0
+        $ERROR_STATUS && exit 1 || exit 0
