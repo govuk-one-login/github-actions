@@ -11,12 +11,16 @@ inputs:
   coverage-artifact:
     description: "Name of the artifact containing the coverage report (lcov.info file)"
     required: false
+    default: coverage
+  coverage-run-id:
+    description: "ID of the workflow run that produces the coverage report"
+    required: false
   coverage-location:
     description: "The directory where SonarCloud expects to find the coverage report (specified in the config file)"
     required: false
     default: coverage
   github-token:
-    description: "The token to authenticate access to the GitHub repo - the value of secrets.GITHUB_TOKEN"
+    description: "The token to authenticate to the GitHub API - the value of secrets.GITHUB_TOKEN"
     required: true
   sonar-token:
     description: "The token to authenticate access to SonarCloud"
@@ -34,12 +38,23 @@ runs:
       with:
         fetch-depth: 0
 
+    - name: Await coverage report
+      if: ${{ inputs.coverage-artifact != null && inputs.coverage-run-id == null }}
+      id: coverage
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        ARTIFACT_NAME: ${{ inputs.coverage-artifact }}
+      run: ${{ github.action_path }}/../../scripts/gha/await-artifact.sh
+
     - name: Get coverage results
       if: ${{ inputs.coverage-artifact != null }}
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.coverage-artifact }}
         path: ${{ inputs.coverage-location }}
+        run-id: ${{ steps.coverage.outputs.run-id }}
+        github-token: ${{ (steps.coverage.outputs.run-id || github.run_id) != github.run_id && inputs.github-token || null }}
 
     - name: Scan
       uses: SonarSource/sonarcloud-github-action@master
