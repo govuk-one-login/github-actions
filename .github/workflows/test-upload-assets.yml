@@ -49,13 +49,13 @@ jobs:
             echo "::error::Expected the ZIP file to have been uploaded to the correct S3 location" && exit 1
 
           unzip some-stack.zip -d uploaded-zip
-          cd uploaded-zip || exit
+          cd uploaded-zip || exit 1
 
           diff ZipSignature - <<< "$KMS_SIGNATURE"
           diff govuk_fe_version.txt - < <(jq --raw-output .version "$WORKDIR"/node_modules/govuk-frontend/package.json)
 
           unzip public.zip -d assets
-          cd assets || exit
+          cd assets || exit 1
 
           ! [[ -f public/javascripts/application.js ]] &&
             echo "::error::Expected assets to have been uploaded" && exit 1 || exit 0

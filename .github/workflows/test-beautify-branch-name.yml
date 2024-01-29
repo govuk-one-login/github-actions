@@ -145,7 +145,7 @@ jobs:
       - name: Check length limit not validated
         if: ${{ steps.validate-length-limit.outcome != 'failure' }}
         run: |
-          echo "Invalid length limit has not been rejected"
+          echo "::error::Invalid length limit has not been rejected"
           exit 1
 
 
