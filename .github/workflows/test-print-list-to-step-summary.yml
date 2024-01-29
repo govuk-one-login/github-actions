@@ -3,6 +3,10 @@ name: Print list to step summary test
 on: pull_request
 permissions: {}
 
+concurrency:
+  group: test-print-list-to-step-summary-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   run-tests:
     name: Test action

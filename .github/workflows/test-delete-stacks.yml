@@ -3,6 +3,10 @@ name: Delete stacks test
 on: pull_request
 permissions: {}
 
+concurrency:
+  group: test-delete-stacks-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   run-tests:
     name: Test action

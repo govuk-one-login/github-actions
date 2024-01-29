@@ -3,6 +3,10 @@ name: Parse parameters test
 on: pull_request
 permissions: {}
 
+concurrency:
+  group: test-parse-parameters-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   run-tests:
     name: Test action
