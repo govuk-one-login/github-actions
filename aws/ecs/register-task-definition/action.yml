@@ -89,7 +89,7 @@ runs:
           --output text)
 
         read -r arn family revision <<< "$registered_task_definition"
-        url="https://${AWS_REGION}.console.aws.amazon.com/ecs/v2/task-definitions/${family}/${revision}"        
+        url="https://${AWS_REGION}.console.aws.amazon.com/ecs/v2/task-definitions/${family}/${revision}"
 
         echo "task-definition-arn=$arn" >> "$GITHUB_OUTPUT"
         echo "task-definition-url=$url" >> "$GITHUB_OUTPUT"

@@ -150,8 +150,8 @@ runs:
       run: |
         echo "::group::Build image"
         read -ra tags < <(xargs <<< "$IMAGE_TAGS")
-        read -ra tags <<< "${tags[@]/#/--tag $REGISTRY/$REPOSITORY:}"        
-        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}        
+        read -ra tags <<< "${tags[@]/#/--tag $REGISTRY/$REPOSITORY:}"
+        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}
         docker build ${image_name:+--tag $image_name} "${tags[@]}" ${DOCKERFILE:+--file $DOCKERFILE} "$BUILD_PATH"
         echo "::endgroup::"
 

@@ -123,5 +123,5 @@ jobs:
           deployment: continuous
           memory: unlimited
           EOF
-          
+
           cat "$VARS_FILE" | sort | diff expected_file -

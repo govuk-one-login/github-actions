@@ -57,7 +57,7 @@ jobs:
       - name: Check stacks filtered by name
         run: |
           [[ "${{ steps.filter-stacks-by-name.outputs.stack-names }}" == "test-one test-three" ]]
-      
+
 
       - name: Filter stacks with one tag
         id: filter-stacks-one-tag

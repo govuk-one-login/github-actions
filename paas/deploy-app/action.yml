@@ -73,7 +73,7 @@ runs:
         VARS: ${{ steps.parse-variables.outputs.variables }}
       run: |
         declare -A variables
-        eval "variables=(${VARS})"        
+        eval "variables=(${VARS})"
         for variable in "${!variables[@]}"; do
           echo "$variable: ${variables[$variable]}" >> "$VARS_FILE"
         done
@@ -118,7 +118,7 @@ runs:
         START_COMMAND: ${{ inputs.start-command }}
         MANIFEST_PATH: ${{ inputs.manifest }}
       run: |
-        $ROLLING_DEPLOYMENT && strategy="rolling"        
+        $ROLLING_DEPLOYMENT && strategy="rolling"
 
         cf push "${APP_NAME:-}" \
           ${APP_DIR:+--path "$APP_DIR"} \
