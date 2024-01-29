@@ -16,6 +16,10 @@ inputs:
     description: "Run checks on files with the specified extensions (space or newline-delimited string)"
     required: false
     default: .sh
+  pull-repository:
+    description: "Pull the repository before running pre-commit"
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -31,6 +35,7 @@ runs:
         echo "MERGING=$merging" >> "$GITHUB_ENV"
 
     - name: Pull repository
+      if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}

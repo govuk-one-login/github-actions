@@ -3,18 +3,39 @@ name: Check PR
 on: pull_request
 permissions: {}
 
+concurrency:
+  group: check-pr-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v4
+
+      - name: Run pre-commit
+        uses: ./code-quality/run-pre-commit
+        with:
+          install-dependencies: true
+          pull-repository: false
+          all-files: true
+
   run-checkov:
     name: Run Checkov
     runs-on: ubuntu-latest
     steps:
       - name: Pull repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Run Checkov
         uses: ./code-quality/run-checkov
         with:
           skip-checks: CKV_SECRET_6
+          pull-repository: false
 
   check-shell-scripts:
     name: Check shell scripts
@@ -22,8 +43,11 @@ jobs:
     steps:
       - name: Pull repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Run shell checks
         uses: ./code-quality/check-shell-scripts
         with:
+          pull-repository: false
           shell: bash

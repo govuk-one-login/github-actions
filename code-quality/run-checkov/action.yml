@@ -10,6 +10,10 @@ inputs:
   skip-frameworks:
     description: "Frameworks to skip. Multiple values separated by commas, spaces or newlines"
     required: false
+  pull-repository:
+    description: "Pull the repository before running pre-commit"
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -25,6 +29,7 @@ runs:
         echo "merging=$merging" >> "$GITHUB_OUTPUT"
 
     - name: Pull repository
+      if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
