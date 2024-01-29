@@ -1,0 +1,11 @@
+{
+  "name": "upload-assets",
+  "scripts": {
+    "build": "mkdir -p dist/public/javascripts; npm run uglify",
+    "uglify": "uglifyjs node_modules/govuk-frontend/govuk/all.js --output dist/public/javascripts/application.js --compress --mangle"
+  },
+  "dependencies": {
+    "govuk-frontend": "^4.7.0",
+    "uglify-js": "^3.17.4"
+  }
+}

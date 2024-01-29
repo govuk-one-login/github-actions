@@ -70,12 +70,16 @@ if [[ ${1:-} == ssm ]] && [[ ${2:-} == get-parameters || ${2:-} == get-parameter
   exit 0
 fi
 
-if [[ ${1:-} == s3 ]] && [[ ${2:-} == cp || ${2:-} ]]; then
+if [[ ${1:-} == s3 ]] && [[ ${2:-} == cp ]]; then
+  echo "[S3] Copying $3 to $4"
+  echo "S3_COPIED_FROM=$3" >> "$GITHUB_ENV"
+  echo "S3_COPIED_TO=$4" >> "$GITHUB_ENV"
   exit 0
 fi
 
-if [[ ${1:-} == kms ]] && [[ ${2:-} == sign || ${2:-} ]]; then
-  echo "dGVzdGluZw=="
+if [[ ${1:-} == kms ]] && [[ ${2:-} == sign ]]; then
+  echo "KMS_SIGNATURE=${signature:=fake-kms-signature}" >> "$GITHUB_ENV"
+  echo "$signature" | base64
   exit 0
 fi
 
