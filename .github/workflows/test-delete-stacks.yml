@@ -1,7 +1,7 @@
 name: Delete stacks test
 
 on: pull_request
-permissions: read-all
+permissions: {}
 
 jobs:
   run-tests:

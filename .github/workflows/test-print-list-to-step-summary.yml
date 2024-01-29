@@ -1,7 +1,7 @@
 name: Print list to step summary test
 
 on: pull_request
-permissions: read-all
+permissions: {}
 
 jobs:
   run-tests:
