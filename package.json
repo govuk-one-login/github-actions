@@ -4,7 +4,9 @@
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier --check .",
     "lint": "npm run lint:eslint && npm run lint:prettier",
-    "lint:fix": "npm run lint:eslint -- --fix && npm run lint:prettier -- --write"
+    "lint:fix": "npm run lint:eslint -- --fix && npm run lint:prettier -- --write",
+    "pre-commit": "pre-commit run --all-files",
+    "pc": "npm run pre-commit"
   },
   "devDependencies": {
     "prettier": "^3.2.4",

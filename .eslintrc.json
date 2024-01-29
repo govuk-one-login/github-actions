@@ -8,7 +8,13 @@
     "prettier",
     "plugin:prettier/recommended"
   ],
-  "ignorePatterns": ["node_modules", "dist"],
+  "ignorePatterns": [
+    "!.github",
+    "!.*.yaml",
+    "!.*.json",
+    "node_modules",
+    "dist"
+  ],
   "rules": {
     "yml/plain-scalar": 0
   }
