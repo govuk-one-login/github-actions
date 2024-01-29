@@ -1,38 +1,38 @@
-name: 'Deploy to PaaS'
-description: 'Deploy an application to PaaS using the Cloud Foundry client'
+name: "Deploy to PaaS"
+description: "Deploy an application to PaaS using the Cloud Foundry client"
 inputs:
   cf-org-name:
-    description: 'The target organisation in PaaS'
+    description: "The target organisation in PaaS"
     required: true
   cf-space-name:
-    description: 'The target CF space in PaaS'
+    description: "The target CF space in PaaS"
     required: true
   cf-username:
-    description: 'The CF username of the PaaS account used to deploy the app'
+    description: "The CF username of the PaaS account used to deploy the app"
     required: true
   cf-password:
-    description: 'The PaaS account password'
+    description: "The PaaS account password"
     required: true
   app-name:
-    description: 'The name of the deployed app. Overrides the name in the manifest and the one derived from branch name'
+    description: "The name of the deployed app. Overrides the name in the manifest and the one derived from branch name"
     required: false
   app-name-prefix:
-    description: 'Derive the app name from the branch name and use the provided prefix'
+    description: "Derive the app name from the branch name and use the provided prefix"
     required: false
   variables:
     description: 'key=value pairs for variable substitution in the manifest, separated by newlines or "|"'
     required: false
   url:
-    description: 'The PaaS deployment URL. Overrides the default <app-name>.london.cloudapps.digital URL'
+    description: "The PaaS deployment URL. Overrides the default <app-name>.london.cloudapps.digital URL"
     required: false
   rolling-deployment:
-    description: 'Whether to use the rolling strategy when deploying'
+    description: "Whether to use the rolling strategy when deploying"
     required: false
-    default: 'false'
+    default: "false"
   instances:
-    description: 'Number of app instances to deploy'
+    description: "Number of app instances to deploy"
     required: false
-    default: '1'
+    default: "1"
   start-command:
     description: "Command used to start the app"
     required: false
@@ -44,7 +44,7 @@ inputs:
     required: false
 outputs:
   deployment-url:
-    description: 'The PaaS deployment URL'
+    description: "The PaaS deployment URL"
     value: ${{ steps.set-deployment-url.outputs.deployment-url }}
 runs:
   using: composite
@@ -62,7 +62,7 @@ runs:
       shell: bash
       env:
         PARAMETERS: ${{ inputs.variables }}
-        ASSOCIATIVE_ARRAY: 'true'
+        ASSOCIATIVE_ARRAY: "true"
         PARSE: ${{ github.action_path }}/../../scripts/parse-parameters.sh
       run: echo "variables=$($PARSE)" >> "$GITHUB_OUTPUT"
 

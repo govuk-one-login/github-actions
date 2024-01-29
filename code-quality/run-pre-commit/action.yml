@@ -34,7 +34,7 @@ runs:
           $ALL_FILES || files="--from-ref HEAD^ --to-ref HEAD"
           fetch_depth=2
         fi
-        
+
         echo "fetch-depth=${fetch_depth:-}" >> "$GITHUB_OUTPUT"
         echo "files=${files:---all-files}" >> "$GITHUB_OUTPUT"
 

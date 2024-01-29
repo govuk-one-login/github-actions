@@ -47,10 +47,10 @@ runs:
       run: |
         retrieved_digests=$($GET_DIGESTS)
         read -ra retrieved_digests <<< "$retrieved_digests"
-        
+
         read -ra digests < <(xargs <<< "$IMAGE_DIGESTS")
         digests+=("${retrieved_digests[@]}")
-        
+
         unique_digests=$(IFS=$'\n' && sort -u <<< "${digests[*]}" | xargs)
         echo "digests=$unique_digests" >> "$GITHUB_OUTPUT"
 

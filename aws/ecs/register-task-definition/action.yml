@@ -79,7 +79,7 @@ runs:
         TAGS: ${{ steps.parse-tags.outputs.tags }}
       run: |
         read -ra tags <<< "$TAGS"
-        
+
         registered_task_definition=$(aws ecs register-task-definition \
           --cli-input-json "$(cat "$TASK_DEFINITION_TEMPLATE")" \
           ${EXECUTION_ROLE_ARN:+--execution-role-arn $EXECUTION_ROLE_ARN} \
@@ -87,7 +87,7 @@ runs:
           ${TAGS:+--tags ${tags[@]}} \
           --query "taskDefinition.[taskDefinitionArn, family, revision]" \
           --output text)
-        
+
         read -r arn family revision <<< "$registered_task_definition"
         url="https://${AWS_REGION}.console.aws.amazon.com/ecs/v2/task-definitions/${family}/${revision}"        
 

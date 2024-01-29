@@ -1,25 +1,25 @@
-name: 'Get stale stacks'
-description: 'Retrieve names of AWS SAM stacks older than a set threshold, and filtered by name and tags'
+name: "Get stale stacks"
+description: "Retrieve names of AWS SAM stacks older than a set threshold, and filtered by name and tags"
 inputs:
   threshold-days:
-    description: 'Get stacks older than the specified number of days'
+    description: "Get stacks older than the specified number of days"
     required: false
-    default: '30'
+    default: "30"
   stack-name-filter:
-    description: 'Only retrieve stacks whose names contain the specified string'
+    description: "Only retrieve stacks whose names contain the specified string"
     required: false
   stack-tag-filters:
     description: 'Filter stacks by tags, encoded as name=value pairs separated by newlines or "|"'
     required: true
   env-var-name:
-    description: 'Accumulate stack names in the environment variable with the specified name, persisted in the job'
+    description: "Accumulate stack names in the environment variable with the specified name, persisted in the job"
     required: false
   description:
-    description: 'Description of the stale stacks - for logging purposes only'
+    description: "Description of the stale stacks - for logging purposes only"
     required: false
 outputs:
   stack-names:
-    description: 'Filtered stack names'
+    description: "Filtered stack names"
     value: ${{ steps.filter-stacks.outputs.stack-names }}
 runs:
   using: composite
@@ -29,7 +29,7 @@ runs:
       shell: bash
       env:
         PARAMETERS: ${{ inputs.stack-tag-filters }}
-        ASSOCIATIVE_ARRAY: 'true'
+        ASSOCIATIVE_ARRAY: "true"
         PARSE: ${{ github.action_path }}/../../scripts/parse-parameters.sh
       run: echo "tag-filters=$($PARSE)" >> "$GITHUB_OUTPUT"
 

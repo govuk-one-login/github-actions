@@ -1,10 +1,10 @@
-name: 'Delete stale apps'
-description: 'Clean up apps that are older than the specified age'
+name: "Delete stale apps"
+description: "Clean up apps that are older than the specified age"
 inputs:
   age-threshold-days:
-    description: 'The number of days to use as the threshold when checking when the app was last updated'
+    description: "The number of days to use as the threshold when checking when the app was last updated"
     required: false
-    default: '30'
+    default: "30"
 runs:
   using: composite
   steps:
@@ -25,6 +25,6 @@ runs:
       run: |
         VALUES=$DELETED_APPS MESSAGE="Deleted apps" SINGLE_MESSAGE="Deleted app %s" $REPORT |
           tee -a "$GITHUB_STEP_SUMMARY"
-        
+
         VALUES=$FAILED_APPS MESSAGE="Failed to delete apps" SINGLE_MESSAGE="Failed to delete app %s" $REPORT |
           tee -a "$GITHUB_STEP_SUMMARY"

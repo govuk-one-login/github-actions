@@ -1,19 +1,19 @@
-name: 'Check shell scripts'
-description: 'Runs shellcheck and shfmt on shell scripts and reports results to the job summary if there are violations'
+name: "Check shell scripts"
+description: "Runs shellcheck and shfmt on shell scripts and reports results to the job summary if there are violations"
 inputs:
   run-shellcheck:
-    description: 'Whether to run shellcheck'
+    description: "Whether to run shellcheck"
     required: false
-    default: 'true'
+    default: "true"
   run-shfmt:
-    description: 'Whether to run shfmt'
+    description: "Whether to run shfmt"
     required: false
-    default: 'true'
+    default: "true"
   shell:
-    description: 'Specify the dialect for shellcheck to use (sh, bash, dash, ksh)'
+    description: "Specify the dialect for shellcheck to use (sh, bash, dash, ksh)"
     required: false
   file-extensions:
-    description: 'Run checks on files with the specified extensions (space or newline-delimited string)'
+    description: "Run checks on files with the specified extensions (space or newline-delimited string)"
     required: false
     default: .sh
 runs:
@@ -49,7 +49,7 @@ runs:
       run: |
         read -ra types < <(xargs <<< "$TYPES")
         extensions=$(IFS="|" && echo "${types[*]##.}")
-        
+
         if $MERGING; then
           files=$(git diff --name-only --diff-filter=d HEAD^...HEAD)
           filter=".*\.($extensions)$"
@@ -59,10 +59,10 @@ runs:
           filter="node_modules|\.aws-sam"
           exclude=true
         fi
-        
+
         scripts=$(grep -E ${exclude:+--invert-match} --regexp="$filter" < <(tr ' ' '\n' <<< "${files[*]}")) ||
           case $? in 1) echo "No files to check" && exit 0 ;; *) exit $? ;; esac
-        
+
         echo "SCRIPTS=$(xargs <<< "$scripts")" >> "$GITHUB_ENV"
 
     - name: Run shellcheck

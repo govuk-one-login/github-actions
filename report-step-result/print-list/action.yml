@@ -1,26 +1,26 @@
-name: 'Print a list of values to the job summary'
-description: 'Print the specified list to the current job summary with an action message'
+name: "Print a list of values to the job summary"
+description: "Print the specified list to the current job summary with an action message"
 inputs:
   values:
-    description: 'Values to append to the job summary, space or newline-delimited string'
+    description: "Values to append to the job summary, space or newline-delimited string"
     required: true
   message:
-    description: 'Message to print before the list'
+    description: "Message to print before the list"
     required: true
   single-message:
-    description: 'Message to print when the list contains a single element; use the token %s to insert the value'
+    description: "Message to print when the list contains a single element; use the token %s to insert the value"
     required: false
   code-block:
-    description: 'Print the values in a code block'
+    description: "Print the values in a code block"
     required: false
-    default: 'true'
+    default: "true"
   output-file-path:
-    description: 'Override the default destination and write the output to the specified file instead'
+    description: "Override the default destination and write the output to the specified file instead"
     required: false
   quiet:
-    description: 'Whether to print the report to the console'
+    description: "Whether to print the report to the console"
     required: false
-    default: 'true'
+    default: "true"
 runs:
   using: composite
   steps:
@@ -40,7 +40,7 @@ runs:
           echo "No elements to print"
           exit
         fi
-        
+
         output_file=${OUT_FILE:-$GITHUB_STEP_SUMMARY}
         echo "$report" >> "$output_file"
         $QUIET || cat "$output_file"

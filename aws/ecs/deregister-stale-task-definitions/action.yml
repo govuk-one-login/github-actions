@@ -46,6 +46,6 @@ runs:
       run: |
         VALUES=$DEREGISTERED_DEFINITIONS MESSAGE="Deregistered ECS task definitions" \
           SINGLE_MESSAGE="Deregistered ECS task definition %s" $REPORT | tee -a "$GITHUB_STEP_SUMMARY"
-        
+
         VALUES=$FAILED_DEFINITIONS MESSAGE="Failed to deregister ECS task definitions" \
           SINGLE_MESSAGE="Failed to deregister ECS task definition %s" $REPORT | tee -a "$GITHUB_STEP_SUMMARY"

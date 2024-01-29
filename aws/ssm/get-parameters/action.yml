@@ -54,12 +54,12 @@ runs:
       run: |
         read -ra param_names < <(xargs <<< "$PARAM_NAMES")
         params=$(aws ssm get-parameters --names "${param_names[@]}" --output json)
-        
+
         if $ERROR_STATUS && missing=$(jq --raw-output --exit-status '.InvalidParameters[]' <<< "$params" | xargs); then
           echo "Parameters not found: $missing"
           exit 1
         fi
-        
+
         echo "parameters=$(jq --compact-output '[.Parameters[] | {Name, Value}]' <<< "$params")" >> "$GITHUB_OUTPUT"
 
     - name: Get parameters by path
@@ -72,13 +72,13 @@ runs:
         ERROR_STATUS: ${{ inputs.fail-if-params-missing == 'true' }}
       run: |
         $RECURSIVE && recursive="--recursive"
-        
+
         if ! params=$(aws ssm get-parameters-by-path --path "$PARAM_PATH" ${recursive:-} --output json |
           jq --compact-output --join-output --exit-status '.Parameters[] | {Name, Value}') && $ERROR_STATUS; then
           echo "No parameters found with the path '$PARAM_PATH'"
           exit 1
         fi
-        
+
         echo "parameters=$params" >> "$GITHUB_OUTPUT"
 
     - name: Get parameter values

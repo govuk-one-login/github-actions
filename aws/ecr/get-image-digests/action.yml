@@ -1,15 +1,15 @@
-name: 'Get image digests'
-description: 'Get the digests of images in an ECR repository with the specified tags, if they exist in the repo'
+name: "Get image digests"
+description: "Get the digests of images in an ECR repository with the specified tags, if they exist in the repo"
 inputs:
   repository:
-    description: 'ECR repository name'
+    description: "ECR repository name"
     required: true
   image-tags:
-    description: 'Tags associated with the targeted images, delimited by spaces or newlines'
+    description: "Tags associated with the targeted images, delimited by spaces or newlines"
     required: true
 outputs:
   image-digests:
-    description: 'A string representation of an array containing the digests of the images with the specified tags'
+    description: "A string representation of an array containing the digests of the images with the specified tags"
     value: ${{ steps.get-image-digests.outputs.image-digests }}
 runs:
   using: composite
