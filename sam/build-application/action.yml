@@ -73,7 +73,7 @@ runs:
         CACHE_NAME: ${{ inputs.cache-name }}
         HASH: ${{ hashFiles(inputs.template || '**/template.y*ml', inputs.source-dir) }}
       run: |
-        restore_key=$OS-sam-$CACHE_NAME
+        restore_key=sam-$CACHE_NAME-$OS
         echo "cache-key=$restore_key-$HASH" >> "$GITHUB_OUTPUT"
         echo "restore-keys=$restore_key-" >> "$GITHUB_OUTPUT"
 

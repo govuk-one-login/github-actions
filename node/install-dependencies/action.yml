@@ -8,6 +8,9 @@ inputs:
     description: "The package manager to use - npm or yarn"
     required: false
     default: npm
+  registry-url:
+    description: "Registry to set up for auth. Credentials must be set in the NODE_AUTH_TOKEN environment variable."
+    required: false
   working-directory:
     description: "The working directory to use"
     required: false
@@ -20,6 +23,7 @@ runs:
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
+        registry-url: ${{ inputs.registry-url }}
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.package-manager }}
 

@@ -51,7 +51,7 @@ runs:
         cache-dependency-path: ./.github/workflows
         cache: pip
 
-    - name: Set up Node.js
+    - name: Set up Node
       if: ${{ inputs.install-dependencies == 'true' }}
       uses: actions/setup-node@v4
       with:
@@ -72,8 +72,8 @@ runs:
     - name: Cache pre-commit dependencies
       uses: actions/cache@v4
       with:
-        key: ${{ runner.os }}-pre-commit-${{ github.head_ref || github.ref_name }}
-        restore-keys: ${{ runner.os }}-pre-commit-
+        key: pre-commit-${{ runner.os }}-${{ hashFiles('**/.pre-commit-config.yaml') }}
+        restore-keys: pre-commit-${{ runner.os }}-
         path: ~/.cache/pre-commit
 
     - name: Run pre-commit
