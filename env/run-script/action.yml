@@ -39,4 +39,4 @@ runs:
       shell: bash
       env:
         COMMAND: ${{ inputs.script }}
-      run: $COMMAND
+      run: eval "$COMMAND"
