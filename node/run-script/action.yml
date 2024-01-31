@@ -1,6 +1,9 @@
-name: "Install Node.js packages"
-description: "Checkout code, set up Node and install packages"
+name: "Run a script in a Node.js environment"
+description: "Checkout code, set up Node, install packages and run the specified script"
 inputs:
+  script:
+    description: "The script to run"
+    required: true
   node-version:
     description: "Node version to set up. The system version is used if not specified."
     required: false
@@ -8,6 +11,9 @@ inputs:
     description: "The package manager to use - npm or yarn"
     required: false
     default: npm
+  registry-url:
+    description: "Registry to set up for auth. Credentials must be set in the NODE_AUTH_TOKEN environment variable."
+    required: false
   working-directory:
     description: "The working directory to use"
     required: false
@@ -20,6 +26,7 @@ runs:
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
+        registry-url: ${{ inputs.registry-url }}
         node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.package-manager }}
 
@@ -30,3 +37,10 @@ runs:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
         [[ $PKG_MGR == npm ]] && npm ci --include-workspace-root || yarn install --frozen-lockfile
+
+    - name: Run script
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      env:
+        COMMAND: ${{ inputs.script }}
+      run: eval "$COMMAND"
