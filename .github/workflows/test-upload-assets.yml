@@ -1,7 +1,11 @@
 name: Upload assets test
 
 on: pull_request
-permissions: read-all
+permissions: {}
+
+concurrency:
+  group: test-upload-assets-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   run-tests:
@@ -14,17 +18,58 @@ jobs:
       - name: Set up stub AWS CLI
         run: echo "./.github/stubs/aws" >> "$GITHUB_PATH"
 
-      - name: use fake package.json
-        run:  mv ./upload-assets/package.json ./package.json
+      - name: Use fake package.json
+        run: cp govuk/upload-assets/package*.json .
 
-      - name: make fake sass
-        run: echo "@import \"../../../node_modules/govuk-frontend/govuk/base\";" > fakesass.scss
+      - name: Make fake sass
+        run: echo '@import "../../../node_modules/govuk-frontend/govuk/base";' > fakesass.scss
 
-      - name: run upload-assets
-        uses: ./upload-assets
+      - name: Upload assets
+        uses: ./govuk/upload-assets
         with:
-          zip-signing-key-arn: "some-arn"
-          stack-name: "some-stack"
-          destination-bucket-name: "some-bucket"
-          npm-or-yarn: 'npm'
-          path-to-sass: './fakesass.scss'
+          signing-key-arn: some-arn
+          stack-name: some-stack
+          path-to-sass: fakesass.scss
+          destination-bucket-name: some-bucket
+
+      - name: Verify assets have been uploaded
+        shell: bash
+        env:
+          WORKDIR: ${{ github.workspace }}
+        run: |
+          diff fakesass.scss - << EOF
+          \$govuk-assets-path: "/v-$(cat govuk_fe_version.txt)/";
+          @import "../../../node_modules/govuk-frontend/govuk/base";
+          EOF
+
+          [[ $S3_COPIED_FROM != some-stack.zip ]] &&
+            echo "::error::Expected the ZIP file to have been uploaded" && exit 1
+
+          [[ $S3_COPIED_TO != s3://some-bucket/some-stack.zip ]] &&
+            echo "::error::Expected the ZIP file to have been uploaded to the correct S3 location" && exit 1
+
+          unzip some-stack.zip -d uploaded-zip
+          cd uploaded-zip || exit
+
+          diff ZipSignature - <<< "$KMS_SIGNATURE"
+          diff govuk_fe_version.txt - < <(jq --raw-output .version "$WORKDIR"/node_modules/govuk-frontend/package.json)
+
+          unzip public.zip -d assets
+          cd assets || exit
+
+          ! [[ -f public/javascripts/application.js ]] &&
+            echo "::error::Expected assets to have been uploaded" && exit 1 || exit 0
+
+
+      - name: Install dependencies with yarn
+        shell: bash
+        run: yarn install
+
+      - name: Upload assets with yarn
+        uses: ./govuk/upload-assets
+        with:
+          signing-key-arn: some-arn
+          stack-name: some-stack
+          package-manager: yarn
+          path-to-sass: fakesass.scss
+          destination-bucket-name: some-bucket
