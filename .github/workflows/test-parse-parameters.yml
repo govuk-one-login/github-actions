@@ -102,6 +102,19 @@ jobs:
           [[ "${{ steps.parse-single-line-params-kvps.outputs.parsed-parameters }}" == "sky='blue' test='foo bar'" ]]
 
 
+      - name: Parse single-line parameters with a custom delimiter
+        id: parse-single-line-params-delim
+        uses: ./parse-parameters
+        with:
+          delimiter: "&"
+          parameters: sky=blue & test="foo bar"&food=mango
+          associative-array: false
+
+      - name: Check single-line parameters parsed into key-value pairs
+        run: |
+          [[ "${{ steps.parse-single-line-params-delim.outputs.parsed-parameters }}" == "sky='blue' test='foo bar' food='mango'" ]]
+
+
       - name: Parse multi-line parameters
         id: parse-multi-line-params
         uses: ./parse-parameters
