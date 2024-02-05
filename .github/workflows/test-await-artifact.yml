@@ -1,0 +1,216 @@
+name: Await artifact test
+
+on: pull_request
+permissions: { }
+
+concurrency:
+  group: test-await-artifact-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+
+    env:
+      GH_RUN_ID: 100
+      GH_REF_NAME: branch
+      GH_HEAD_REF: branch
+      GH_EVENT_PATH: .github/stubs/gh/data/events/pr.json
+
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v4
+
+      - name: Set up stub GitHub CLI
+        run: echo "./.github/stubs/gh" >> "$GITHUB_PATH"
+
+
+      - name: Get artifact from previous attempt of the current workflow
+        uses: ./env/await-artifact
+        id: previous-attempt
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located in the previous attempt
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.previous-attempt.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 1001 ]]
+
+
+      - name: Get artifact from another workflow when excluding current run
+        uses: ./env/await-artifact
+        id: exclude-current-run
+        with:
+          exclude-current-run: true
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located in another workflow when current run excluded
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.exclude-current-run.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 3001 ]]
+
+
+      - name: Get artifact from another workflow
+        uses: ./env/await-artifact
+        id: another-workflow
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+          run-id: 200
+
+      - name: Verify artifact located in another workflow
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.another-workflow.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 2002 ]]
+
+
+      - name: Get artifact for a branch
+        uses: ./env/await-artifact
+        id: branch
+        env:
+          BRANCH: other-branch
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located for a branch
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.branch.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 1011 ]]
+
+
+      - name: Get artifact for a SHA
+        uses: ./env/await-artifact
+        id: sha
+        env:
+          HEAD_SHA: b500
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located for a branch
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.sha.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 1004 ]]
+
+
+      - name: Get an artifact after a timestamp
+        uses: ./env/await-artifact
+        id: timestamp
+        env:
+          TIMESTAMP: 2020-06-10T12:11:00Z
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located for a branch
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.timestamp.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 3001 ]]
+
+
+      - name: Get another artifact
+        uses: ./env/await-artifact
+        id: other-artifact
+        with:
+          artifact-name: other-artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify another artifact located
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.other-artifact.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 1006 ]]
+
+
+      - name: Get an artifact for a push event
+        uses: ./env/await-artifact
+        id: push
+        env:
+          GH_EVENT_NAME: push
+          GH_EVENT_PATH: .github/stubs/gh/data/events/push.json
+        with:
+          artifact-name: artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify artifact located for a push event
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.push.outputs.artifact-id }}
+        run: |
+          [[ $ARTIFACT_ID -eq 4001 ]]
+
+
+      - name: Don't accept an invalid workflow run as the source of the artifact
+        uses: ./env/await-artifact
+        id: invalid-run
+        env:
+          GH_EVENT_NAME: push
+          GH_EVENT_PATH: .github/stubs/gh/data/events/push.json
+        with:
+          run-id: 100
+          artifact-name: artifact
+          error-on-missing: false
+          github-token: gh-token
+
+      - name: Verify invalid workflow run not accepted
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.invalid-run.outputs.artifact-id }}
+        run: |
+          ! [[ $ARTIFACT_ID ]]
+
+
+      - name: Don't exit with an error status when artifact not found
+        uses: ./env/await-artifact
+        id: no-error
+        with:
+          artifact-name: non-existent-artifact
+          error-on-missing: false
+          github-token: gh-token
+
+      - name: Verify no error on missing artifact
+        shell: bash
+        env:
+          ARTIFACT_ID: ${{ steps.no-error.outputs.artifact-id }}
+        run: |
+          ! [[ $ARTIFACT_ID ]]
+
+
+      - name: Exit with an error status when artifact not found
+        uses: ./env/await-artifact
+        continue-on-error: true
+        id: error
+        with:
+          artifact-name: non-existent-artifact
+          error-on-missing: true
+          github-token: gh-token
+
+      - name: Verify error on missing artifact
+        if: ${{ failure() && steps.error.outcome != 'failure' }}
+        shell: bash
+        run: exit 1

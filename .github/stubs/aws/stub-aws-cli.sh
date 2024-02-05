@@ -1,7 +1,7 @@
 set -eu
 OPTION_REGEX="^--?.*"
 
-[[ ${1:-} == help ]] && echo "Using stub AWS CLI"
+[[ ${1:-} == help ]] && echo "Using stub AWS CLI" && exit
 
 if [[ ${1:-} == cloudformation && ${2:-} == describe-stacks ]]; then
   stacks=$(cat "$(dirname "${BASH_SOURCE[0]}")/stacks.json")

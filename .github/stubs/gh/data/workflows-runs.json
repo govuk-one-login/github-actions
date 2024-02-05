@@ -1,0 +1,38 @@
+[
+  {
+    "databaseId": 100,
+    "number": 2,
+    "name": "Test workflow (current)",
+    "displayTitle": "Run action test",
+    "event": "pull_request",
+    "status": "in_progress",
+    "url": "example.com"
+  },
+  {
+    "databaseId": 200,
+    "number": 5,
+    "name": "Other workflow",
+    "displayTitle": "Produce artifact",
+    "event": "pull_request",
+    "status": "completed",
+    "url": "example.com"
+  },
+  {
+    "databaseId": 300,
+    "number": 8,
+    "name": "Another workflow",
+    "displayTitle": "Produce artifact again",
+    "event": "pull_request",
+    "status": "completed",
+    "url": "example.com"
+  },
+  {
+    "databaseId": 400,
+    "number": 10,
+    "name": "Push workflow",
+    "displayTitle": "Produce artifact on push",
+    "event": "push",
+    "status": "completed",
+    "url": "example.com"
+  }
+]

@@ -1,7 +1,7 @@
 name: "Wait for an artifact"
 description: |
-  Wait for a named artifact to be uploaded for the current branch and
-  head SHA of the trigger event in any workflow in the repo
+  Wait for a named artifact to be uploaded in any workflow in the repo
+  for the current branch and head SHA of the trigger event of the current action
 inputs:
   artifact-name:
     description: "The name of the artifact to await"
@@ -24,6 +24,9 @@ outputs:
   run-id:
     description: "The ID of the workflow run where the artifact is available"
     value: ${{ steps.await.outputs.run-id }}
+  artifact-id:
+    description: "The ID of the located artifact"
+    value: ${{ steps.await.outputs.artifact-id }}
   artifact-name:
     description: "Pass through the artifact name"
     value: ${{ inputs.artifact-name }}
