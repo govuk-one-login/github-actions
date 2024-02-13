@@ -26,7 +26,8 @@ set -euo pipefail
 : "${TIMESTAMP:=$(jq --raw-output '.pull_request.updated_at // .head_commit.timestamp' < "$GH_EVENT_PATH")}"
 
 function getArtifacts() {
-  gh api "/repos/{owner}/{repo}/actions/artifacts?name=$ARTIFACT_NAME"
+  artifacts=$(gh api "/repos/{owner}/{repo}/actions/artifacts?name=$ARTIFACT_NAME")
+  jq '.artifacts[] | select(.workflow_run.id == 7886689117)' <<< "$artifacts"
 }
 
 function getWorkflowRun() {
@@ -50,7 +51,8 @@ function checkRunningWorkflows() {
 function searchArtifact() {
   runs=$(jq 'map(.databaseId)' <<< "$workflows")
 
-  artifact=$(getArtifacts |
+  getArtifacts
+  artifact=$(echo "$artifacts" |
     jq --exit-status \
       --arg branch "$BRANCH" --arg sha "$HEAD_SHA" --arg event_start "$TIMESTAMP" --arg run_id "${RUN_ID:-}" \
       --argjson current_run_id "$GH_RUN_ID" --argjson exclude_current_run $EXCLUDE_CURRENT_RUN --argjson runs "$runs" \
