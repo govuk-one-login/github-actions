@@ -36,7 +36,7 @@ function getWorkflowRun() {
 }
 
 function checkRunningWorkflows() {
-  workflows=$(gh run list --json databaseId,status \
+  workflows=$(gh run list --json "databaseId,status" \
     --user "$GITHUB_ACTOR" \
     --branch "$BRANCH" \
     --commit "$HEAD_SHA" \
