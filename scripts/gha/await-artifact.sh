@@ -51,6 +51,7 @@ function checkRunningWorkflows() {
 function searchArtifact() {
   runs=$(jq 'map(.databaseId)' <<< "$workflows")
 
+  echo "$workflows"
   getArtifacts
   artifact=$(echo "$artifacts" |
     jq --exit-status \
