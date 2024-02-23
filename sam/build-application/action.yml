@@ -8,6 +8,9 @@ inputs:
   template:
     description: "Path of the SAM template file to use"
     required: false
+  manifest:
+    description: "Path to a custom dependency manifest file"
+    required: false
   base-dir:
     description: "Resolve relative paths to lambda functions' source code with respect to this folder"
     required: false
@@ -71,7 +74,7 @@ runs:
       env:
         OS: ${{ runner.os }}
         CACHE_NAME: ${{ inputs.cache-name }}
-        HASH: ${{ hashFiles(inputs.template || '**/template.y*ml', inputs.source-dir) }}
+        HASH: ${{ hashFiles(inputs.template || '**/template.y*ml', inputs.source-dir, inputs.manifest) }}
       run: |
         restore_key=sam-$CACHE_NAME-$OS
         echo "cache-key=$restore_key-$HASH" >> "$GITHUB_OUTPUT"
@@ -88,12 +91,14 @@ runs:
       shell: bash
       env:
         TEMPLATE_FILE: ${{ inputs.template }}
+        MANIFEST_FILE: ${{ inputs.manifest }}
         BETA_FEATURES: ${{ inputs.enable-beta-features == 'true' }}
         PARALLEL: ${{ inputs.disable-parallel == 'false' }}
         BASE_DIR: ${{ inputs.base-dir }}
       run: |
         sam build --cached \
           ${TEMPLATE_FILE:+--template-file "$TEMPLATE_FILE"} \
+          ${MANIFEST_FILE:+--manifest "$MANIFEST_FILE"} \
           ${BASE_DIR:+--base-dir "$BASE_DIR"} \
           "$($PARALLEL && echo "--parallel")" \
           "$($BETA_FEATURES && echo "--beta-features")"
