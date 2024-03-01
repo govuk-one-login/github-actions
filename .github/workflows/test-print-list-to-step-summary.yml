@@ -1,7 +1,11 @@
 name: Print list to step summary test
 
 on: pull_request
-permissions: read-all
+permissions: {}
+
+concurrency:
+  group: test-print-list-to-step-summary-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   run-tests:
@@ -31,11 +35,9 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values: one
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Accumulate results
@@ -50,12 +52,10 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values: one
           Reported other values: two
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use single value message
@@ -71,11 +71,9 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-single-value.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported single value: one-and-only
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Replace token in single value message
@@ -91,11 +89,9 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-single-value-token.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported one-and-only value
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use code block for single value
@@ -110,11 +106,9 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-code-block-single.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values: `single`
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Print multiple values with extra spaces
@@ -129,7 +123,7 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-multiple-values.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values:
             - one
             - two
@@ -137,8 +131,6 @@ jobs:
             - four
             - five
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use code block for multiple values
@@ -153,14 +145,12 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-code-block-multiple.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values:
             - `one`
             - `two`
             - `three`
           EOF
-
-          [[ $(cat "$OUTPUT_FILE") == $(cat expected_file) ]]
 
 
       - name: Print multi-line values
@@ -178,14 +168,12 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-multiline-values.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values:
             - one
             - two
             - three
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Print multi-line values with spaces and empty lines
@@ -211,15 +199,13 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-multiline-values-spaces.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values:
             - one two   three
             - blue pink yellow
             - apple banana orange
             - seafood pasta sushi
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use code block for multi-line values with spaces
@@ -238,14 +224,12 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-multiline-values-block.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Reported values:
             - `one two three`
             - `blue pink yellow`
             - `apple banana orange`
           EOF
-
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Complete without an error when given an empty list
@@ -261,7 +245,7 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-empty-list.txt
         run: |
-          [[ -s $OUTPUT_FILE ]] && echo "Expected the output file to be empty" && exit 1 || exit 0
+          [[ -s $OUTPUT_FILE ]] && echo "::error::Expected the output file to be empty" && exit 1 || exit 0
 
 
       - name: Complete without an error when given an empty multi-line value
@@ -285,4 +269,4 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-empty-list-multiline.txt
         run: |
-          [[ -s $OUTPUT_FILE ]] && echo "Expected the output file to be empty" && exit 1 || exit 0
+          [[ -s $OUTPUT_FILE ]] && echo "::error::Expected the output file to be empty" && exit 1 || exit 0

@@ -1,7 +1,11 @@
 name: Print file to step summary test
 
 on: pull_request
-permissions: read-all
+permissions: {}
+
+concurrency:
+  group: test-print-file-to-step-summary-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   run-tests:
@@ -37,7 +41,7 @@ jobs:
       - name: Check error returned on missing report
         if: ${{ steps.fail-on-missing-report.outcome != 'failure' }}
         run: |
-          echo "Error status not returned on missing report"
+          echo "::error::Error status not returned on missing report"
           exit 1
 
 
@@ -78,12 +82,10 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           Stub result
           Stub result
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Include title
@@ -97,12 +99,10 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-with-title.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           **Report title**
           Stub result
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use code block
@@ -116,13 +116,11 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-code-block.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           ```
           Stub result
           ```
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use syntax highlighting
@@ -136,13 +134,11 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-syntax-highlight.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           ```shell
           Stub result
           ```
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Use all elements
@@ -157,14 +153,12 @@ jobs:
         env:
           OUTPUT_FILE: ${{ runner.temp }}/report-all-elements.txt
         run: |
-          cat << 'EOF' > expected_file
+          diff "$OUTPUT_FILE" - << 'EOF'
           **Report title**
           ```shell
           Stub result
           ```
           EOF
-          
-          diff "$OUTPUT_FILE" expected_file
 
 
       - name: Read from standard input
@@ -179,5 +173,5 @@ jobs:
           Standard input
           ```
           EOF
-          
-          echo "Standard input" | $REPORT | diff expected_file -
+
+          $REPORT <<< "Standard input" | diff expected_file -

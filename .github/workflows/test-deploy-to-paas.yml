@@ -1,7 +1,11 @@
 name: Deploy to PaaS test
 
 on: pull_request
-permissions: read-all
+permissions: {}
+
+concurrency:
+  group: test-deploy-to-paas-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   run-tests:
