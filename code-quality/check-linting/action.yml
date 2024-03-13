@@ -74,7 +74,7 @@ runs:
       run: |
         echo ":: Running Prettier"
         $MERGING && read -ra files <<< "$FILES" || files=(.)
-        
+
         npx prettier --ignore-unknown --check "${files[@]}" 2>&1 | tee "$OUTPUT" ||
           (FILE=$OUTPUT TITLE=Prettier CODE_BLOCK=true $REPORT >> "$GITHUB_STEP_SUMMARY" && exit 1)
 
@@ -90,18 +90,18 @@ runs:
         echo ":: Running ESLint"
         $STRICT && max_warnings="--max-warnings=0"
         $MERGING || es_files=(.)
-        
+
         if $MERGING; then
           files="$(tr ' ' '\n' <<< "$FILES")"
           read -ra types < <(xargs <<< "$TYPES")
           filetype_regex=$(IFS="|" && echo ".*\.(${types[*]##.})$")
-        
+
           filtered_files=$(grep -E --regexp="$filetype_regex" <<< "$files") ||
             case $? in 1) echo "No files to check" && exit 0 ;; *) exit $? ;; esac
-        
+
           mapfile -t es_files <<< "$filtered_files"
         fi
-        
+
         npx eslint ${max_warnings:-} "${es_files[@]}" | tee "$OUTPUT" ||
           (FILE=$OUTPUT TITLE=ESLint CODE_BLOCK=true $REPORT >> "$GITHUB_STEP_SUMMARY" && exit 1)
 
@@ -115,16 +115,16 @@ runs:
       run: |
         echo ":: Running cfn-lint"
         $STRICT && error_on_warnings=true
-        
+
         if ! $MERGING; then
           shopt -s globstar dotglob extglob nullglob
           files=$(echo !(.github|node_modules|.aws-sam)/!(node_modules|.aws-sam)/*.@(yaml|yml))
         fi
-        
+
         read -ra files <<< "${files:-$FILES}"
         filtered_files=$(grep -El --regexp="^AWSTemplateFormatVersion: [\"']?[[:digit:]-]+[\"']?" "${files[@]}") ||
           case $? in 1) echo "No files to check" && exit 0 ;; *) exit $? ;; esac
-        
+
         mapfile -t files <<< "$filtered_files"
         cfn-lint ${error_on_warnings:+--non-zero-exit-code warning} "${files[@]}" | tee "$OUTPUT" ||
           (FILE=$OUTPUT TITLE="CloudFormation linter" CODE_BLOCK=true $REPORT >> "$GITHUB_STEP_SUMMARY" && exit 1)

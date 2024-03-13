@@ -49,11 +49,11 @@ jobs:
           VALUE_THREE: ${{ fromJSON(steps.get-many-named-params.outputs.parameters).three }}
         run: |
           [[ $(jq length <<< "$PARAMS") -eq 3 ]]
-          
+
           [[ $(jq --raw-output '.one' <<< "$PARAMS") == "simple-one" ]]
           [[ $(jq --raw-output '.two' <<< "$PARAMS") == "simple-two" ]]
           [[ $(jq --raw-output '.three' <<< "$PARAMS") == "simple-three" ]]
-          
+
           [[ $VALUE_ONE == "simple-one" ]]
           [[ $VALUE_TWO == "simple-two" ]]
           [[ $VALUE_THREE == "simple-three" ]]
@@ -109,12 +109,12 @@ jobs:
           VALUE_THREE: ${{ fromJSON(steps.get-many-mixed-params.outputs.parameters).three }}
         run: |
           [[ $(jq length <<< "$PARAMS") -eq 4 ]]
-          
+
           [[ $(jq --raw-output '.one' <<< "$PARAMS") == "simple-one" ]]
           [[ $(jq --raw-output '.three' <<< "$PARAMS") == "simple-three" ]]
           [[ $(jq --raw-output '."/path/param/three"' <<< "$PARAMS") == "path-three" ]]
           [[ $(jq --raw-output '."/path/param/deep/two"' <<< "$PARAMS") == "path-deep-two" ]]
-          
+
           [[ $VALUE_ONE == "simple-one" ]]
           [[ $VALUE_THREE == "simple-three" ]]
 
@@ -198,13 +198,13 @@ jobs:
           VALUE_FIVE: ${{ fromJSON(steps.merge-mixed-params.outputs.parameters).five }}
         run: |
           [[ $(jq length <<< "$PARAMS") -eq 5 ]]
-          
+
           [[ $(jq --raw-output '.four' <<< "$PARAMS") == "simple-four" ]]
           [[ $(jq --raw-output '.five' <<< "$PARAMS") == "simple-five" ]]
           [[ $(jq --raw-output '."/path/param/deep/one"' <<< "$PARAMS") == "path-deep-one" ]]
           [[ $(jq --raw-output '."/path/param/deep/two"' <<< "$PARAMS") == "path-deep-two" ]]
           [[ $(jq --raw-output '."/path/param/deep/three"' <<< "$PARAMS") == "path-deep-three" ]]
-          
+
           [[ $VALUE_FOUR == "simple-four" ]]
           [[ $VALUE_FIVE == "simple-five" ]]
 
@@ -228,13 +228,13 @@ jobs:
           VALUE_FIVE: ${{ fromJSON(steps.merge-param-keys.outputs.parameters).five }}
         run: |
           [[ $(jq length <<< "$PARAMS") -eq 5 ]]
-          
+
           [[ $(jq --raw-output '.one' <<< "$PARAMS") == "path-deep-one" ]]
           [[ $(jq --raw-output '.two' <<< "$PARAMS") == "path-deep-two" ]]
           [[ $(jq --raw-output '.three' <<< "$PARAMS") == "path-deep-three" ]]
           [[ $(jq --raw-output '.four' <<< "$PARAMS") == "path-four" ]]
           [[ $(jq --raw-output '.five' <<< "$PARAMS") == "simple-five" ]]
-          
+
           [[ $VALUE_ONE == "path-deep-one" ]]
           [[ $VALUE_TWO == "path-deep-two" ]]
           [[ $VALUE_THREE == "path-deep-three" ]]
@@ -274,10 +274,10 @@ jobs:
           VALUE_TWO: ${{ fromJSON(steps.some-named-params-missing.outputs.parameters).two }}
         run: |
           [[ $(jq length <<< "$PARAMS") -eq 2 ]]
-          
+
           [[ $(jq --raw-output '.one' <<< "$PARAMS") == "simple-one" ]]
           [[ $(jq --raw-output '.two' <<< "$PARAMS") == "simple-two" ]]
-          
+
           [[ $VALUE_ONE == "simple-one" ]]
           [[ $VALUE_TWO == "simple-two" ]]
 
@@ -295,7 +295,7 @@ jobs:
           STATUS: ${{ steps.named-params-missing.outcome }}
           PARAMS: ${{ steps.named-params-missing.outputs.parameters }}
         run: |
-          [[ $STATUS == failure ]]          
+          [[ $STATUS == failure ]]
           [[ -z $PARAMS ]]
 
 
@@ -312,5 +312,5 @@ jobs:
           STATUS: ${{ steps.path-params-missing.outcome }}
           PARAMS: ${{ steps.path-params-missing.outputs.parameters }}
         run: |
-          [[ $STATUS == failure ]]          
+          [[ $STATUS == failure ]]
           [[ -z $PARAMS ]]

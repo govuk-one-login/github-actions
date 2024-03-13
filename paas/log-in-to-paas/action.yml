@@ -1,17 +1,17 @@
-name: 'Login to PaaS'
-description: 'Set up the Cloud Foundry CLI and authenticate to PaaS'
+name: "Login to PaaS"
+description: "Set up the Cloud Foundry CLI and authenticate to PaaS"
 inputs:
   cf-org-name:
-    description: 'The target organisation in PaaS'
+    description: "The target organisation in PaaS"
     required: true
   cf-space-name:
-    description: 'The target CF space in PaaS'
+    description: "The target CF space in PaaS"
     required: true
   cf-username:
-    description: 'The CF username of the PaaS account used to deploy the app'
+    description: "The CF username of the PaaS account used to deploy the app"
     required: true
   cf-password:
-    description: 'The PaaS account password'
+    description: "The PaaS account password"
     required: true
 runs:
   using: composite

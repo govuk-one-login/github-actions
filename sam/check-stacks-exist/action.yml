@@ -12,7 +12,7 @@ inputs:
     description: "Override the default AWS session name"
     required: false
   stack-names:
-    description: 'Names of the stacks to check (space or newline-delimited string)'
+    description: "Names of the stacks to check (space or newline-delimited string)"
     required: true
   set-env-var:
     description: "Name of the environment variable to set in the job with the value of the existing stacks"
@@ -67,9 +67,9 @@ runs:
         VERBOSE: ${{ inputs.verbose == 'true' }}
       run: |
         $VERBOSE && step_summary=$GITHUB_STEP_SUMMARY
-        
+
         VALUES=$EXISTING_STACKS MESSAGE="Existing stacks" SINGLE_MESSAGE="Stack %s exists" $REPORT |
           tee -a "${step_summary[@]}"
-        
+
         VALUES=$MISSING_STACKS MESSAGE="Non-existent stacks" SINGLE_MESSAGE="Stack %s does not exist" $REPORT |
           tee -a "${step_summary[@]}"

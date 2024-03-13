@@ -1,8 +1,8 @@
-name: 'Run Checkov'
-description: 'Run Checkov and report results to the job summary if there are failing checks'
+name: "Run Checkov"
+description: "Run Checkov and report results to the job summary if there are failing checks"
 inputs:
   path:
-    description: 'Only run checks on files matching the specified path filter'
+    description: "Only run checks on files matching the specified path filter"
     required: false
   skip-checks:
     description: "Checks to skip. Multiple values separated by commas, spaces or newlines"
@@ -10,6 +10,10 @@ inputs:
   skip-frameworks:
     description: "Frameworks to skip. Multiple values separated by commas, spaces or newlines"
     required: false
+  pull-repository:
+    description: "Pull the repository before running pre-commit"
+    required: false
+    default: "true"
 runs:
   using: composite
   steps:
@@ -25,6 +29,7 @@ runs:
         echo "merging=$merging" >> "$GITHUB_OUTPUT"
 
     - name: Pull repository
+      if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
@@ -50,7 +55,7 @@ runs:
         if [[ -n $SKIP_CHECKS ]]; then
           echo "skip-checks=--skip-check $(xargs <<< "$SKIP_CHECKS" | tr ' ' ',')" >> "$GITHUB_OUTPUT"
         fi
-        
+
         if [[ -n $SKIP_FRAMEWORKS ]]; then
           echo "skip-frameworks=--skip-framework $(xargs <<< "$SKIP_FRAMEWORKS")" >> "$GITHUB_OUTPUT"
         fi
@@ -63,12 +68,12 @@ runs:
         DIR: ${{ inputs.path }}
       run: |
         files=$(git diff --name-only --diff-filter=d HEAD^...HEAD)
-        
+
         if [[ $DIR ]]; then
           files=$(grep -E --regexp="^.*\/${DIR}\/.*$" <<< "$files") ||
             case $? in 1) echo "No files to check" && exit 0 ;; *) exit $? ;; esac
         fi
-        
+
         echo "files=$(xargs <<< "$files")" >> "$GITHUB_OUTPUT"
 
     - name: Run Checkov on a pull request
@@ -118,5 +123,5 @@ runs:
       env:
         REPORT: ${{ github.action_path }}/../../scripts/report-step-result/print-file.sh
         FILE: ${{ runner.temp }}/checkov.output
-        CODE_BLOCK: 'true'
+        CODE_BLOCK: "true"
       run: $REPORT >> "$GITHUB_STEP_SUMMARY"

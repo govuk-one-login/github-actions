@@ -73,7 +73,7 @@ jobs:
 
       - name: Check stack in good state deleted
         run: |
-          [[ $DELETED_STACKS == create-complete-state-stack ]]          
+          [[ $DELETED_STACKS == create-complete-state-stack ]]
           [[ $DELETED_STACKS_REGION == test-region ]]
           rm -f "$DELETED_STACKS_FILE"
 

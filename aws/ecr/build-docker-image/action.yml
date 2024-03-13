@@ -114,14 +114,14 @@ runs:
           --repository-name "$REPOSITORY" \
           --image-ids imageDigest="$IMAGE_DIGEST" \
           --output json)
-        
+
         failure_reason=$(jq -r '.failures[].failureReason' <<< "$deleted_image")
-        
+
         if [[ $failure_reason ]]; then
           echo "❌ Failed to delete previous image version. $failure_reason" | tee "$GITHUB_STEP_SUMMARY"
           exit 1
         fi
-        
+
         deleted_image_tags=$(jq -r '.imageIds[].imageTag' <<< "$deleted_image" | xargs)
         echo "🚮 Deleted previous image version (\`$deleted_image_tags\`)" | tee "$GITHUB_STEP_SUMMARY"
 
@@ -150,8 +150,8 @@ runs:
       run: |
         echo "::group::Build image"
         read -ra tags < <(xargs <<< "$IMAGE_TAGS")
-        read -ra tags <<< "${tags[@]/#/--tag $REGISTRY/$REPOSITORY:}"        
-        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}        
+        read -ra tags <<< "${tags[@]/#/--tag $REGISTRY/$REPOSITORY:}"
+        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}
         docker build ${image_name:+--tag $image_name} "${tags[@]}" ${DOCKERFILE:+--file $DOCKERFILE} "$BUILD_PATH"
         echo "::endgroup::"
 
@@ -177,21 +177,21 @@ runs:
       run: |
         mapfile -t tags < <(docker image ls "$REGISTRY/$REPOSITORY" --format '{{.Tag}}')
         mapfile -t digests < <(docker image ls "$REGISTRY/$REPOSITORY" --format '{{.Digest}}' | sort -u)
-        
+
         if [[ ${#digests[@]} -ne 1 ]]; then
           echo "Expected one image digest for image \`$REGISTRY/$REPOSITORY\` but got \`${digests[*]}\`"
           exit 1
         fi
-        
+
         digest=${digests[*]}
         url="https://${AWS_REGION}.console.aws.amazon.com/ecr/repositories/private/${REGISTRY%%.*}/${REPOSITORY}/_/image/${digest}/details"
-        
+
         echo "image-digest=$digest" >> "$GITHUB_OUTPUT"
         echo "image-url=$url" >> "$GITHUB_OUTPUT"
 
         [[ ${#tags[@]} -le 1 ]] || plural=true
         [[ ${#tags[@]} -le 0 ]] || tag_msg="tag${plural:+s} \`${tags[*]}\`"
-        
+
         echo "🐳 Pushed [image with ${tag_msg:-digest \`$digest\`}]($url) to repository \`$REPOSITORY\`" >> "$GITHUB_STEP_SUMMARY"
 
     - name: Get image URI

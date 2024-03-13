@@ -39,7 +39,8 @@ runs:
       shell: bash
       env:
         PIPELINE_NAME: ${{ inputs.pipeline-name }}
-      run: aws codepipeline enable-stage-transition --pipeline-name "$PIPELINE_NAME" \
+      run: |
+        aws codepipeline enable-stage-transition --pipeline-name "$PIPELINE_NAME" \
         --stage-name Deploy --transition-type Inbound
 
     - name: Get execution ID
@@ -76,5 +77,6 @@ runs:
       shell: bash
       env:
         PIPELINE_NAME: ${{ inputs.pipeline-name }}
-      run: aws codepipeline disable-stage-transition --pipeline-name "$PIPELINE_NAME" \
+      run: |
+        aws codepipeline disable-stage-transition --pipeline-name "$PIPELINE_NAME" \
         --stage-name Deploy --transition-type Inbound --reason "Deployment trigger controlled by GitHub Actions"

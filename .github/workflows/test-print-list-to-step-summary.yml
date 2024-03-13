@@ -183,14 +183,14 @@ jobs:
           code-block: false
           message: Reported values
           values: |
-            
-            
+
+
             one two   three
             blue pink yellow
-            
-            
+
+
             apple banana orange
-            
+
             seafood pasta sushi
 
 

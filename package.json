@@ -1,0 +1,19 @@
+{
+  "name": "github-actions",
+  "scripts": {
+    "lint:eslint": "eslint .",
+    "lint:prettier": "prettier --check .",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
+    "lint:fix": "npm run lint:eslint -- --fix && npm run lint:prettier -- --write",
+    "pre-commit": "pre-commit run --all-files",
+    "pc": "npm run pre-commit"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "eslint-plugin-json": "^3.1.0",
+    "eslint-plugin-yml": "^1.12.2"
+  }
+}

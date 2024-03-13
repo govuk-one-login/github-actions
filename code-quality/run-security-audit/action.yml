@@ -31,7 +31,7 @@ runs:
         REPORT: ${{ github.action_path }}/../../scripts/report-step-result/print-file.sh
       run: |
         $WORKSPACES && options=(--workspaces --include-workspace-root)
-        
+
         if ! npm audit ${options:+${options[@]}} | tee "$OUTPUT"; then
           FILE=$OUTPUT TITLE="Security audit" CODE_BLOCK=true $REPORT >> "$GITHUB_STEP_SUMMARY"
           $QUIET || exit 1

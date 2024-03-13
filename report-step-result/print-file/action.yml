@@ -1,30 +1,30 @@
-name: 'Print a file to the job summary'
-description: 'Print the specified file to the current job summary with optional syntax highlighting'
+name: "Print a file to the job summary"
+description: "Print the specified file to the current job summary with optional syntax highlighting"
 inputs:
   file-path:
-    description: 'Path to the file to append to the job summary'
+    description: "Path to the file to append to the job summary"
     required: true
   title:
-    description: 'Message to print above the report'
+    description: "Message to print above the report"
     required: false
   code-block:
-    description: 'Print the file contents in a code block'
+    description: "Print the file contents in a code block"
     required: false
-    default: 'false'
+    default: "false"
   language:
-    description: 'Language to use for syntax highlighting when printing the file contents in a code block'
+    description: "Language to use for syntax highlighting when printing the file contents in a code block"
     required: false
   output-file-path:
-    description: 'Override the default destination and write the output to the specified file instead'
+    description: "Override the default destination and write the output to the specified file instead"
     required: false
   fail-if-report-missing:
-    description: 'The action should exit with an error status if the specified report file can not be found'
+    description: "The action should exit with an error status if the specified report file can not be found"
     required: false
-    default: 'true'
+    default: "true"
   quiet:
-    description: 'Whether to print the report to the console'
+    description: "Whether to print the report to the console"
     required: false
-    default: 'true'
+    default: "true"
 runs:
   using: composite
   steps:

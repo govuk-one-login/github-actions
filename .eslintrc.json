@@ -1,0 +1,21 @@
+{
+  "root": true,
+  "extends": [
+    "plugin:yml/standard",
+    "plugin:yml/prettier",
+    "plugin:json/recommended",
+    "eslint:recommended",
+    "prettier",
+    "plugin:prettier/recommended"
+  ],
+  "ignorePatterns": [
+    "!.github",
+    "!.*.yaml",
+    "!.*.json",
+    "node_modules",
+    "dist"
+  ],
+  "rules": {
+    "yml/plain-scalar": 0
+  }
+}
