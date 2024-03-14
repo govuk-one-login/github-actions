@@ -40,6 +40,14 @@ inputs:
     description: "Whether to pull the repository before building"
     required: false
     default: "false"
+  cache-paths:
+    description: "A list of paths to include in the build cache"
+    required: false
+    default: .aws-sam
+  enable-cached-build:
+    description: "Use SAM cached build when building an application"
+    required: false
+    default: "true"
 outputs:
   artifact-name:
     description: "Pass through the artifact name"
@@ -82,17 +90,18 @@ runs:
       with:
         key: ${{ steps.get-cache-key.outputs.cache-key }}
         restore-keys: ${{ steps.get-cache-key.outputs.restore-keys }}
-        path: .aws-sam
+        path: ${{ inputs.cache-paths }}
 
     - name: Build SAM Application
       shell: bash
       env:
         TEMPLATE_FILE: ${{ inputs.template }}
         BETA_FEATURES: ${{ inputs.enable-beta-features == 'true' }}
+        CACHED_BUILD: ${{ inputs.enable-cached-build == 'true' }}
         PARALLEL: ${{ inputs.disable-parallel == 'false' }}
         BASE_DIR: ${{ inputs.base-dir }}
       run: |
-        sam build --cached \
+        sam build $($CACHED_BUILD && echo "--cached") \
           ${TEMPLATE_FILE:+--template-file "$TEMPLATE_FILE"} \
           ${BASE_DIR:+--base-dir "$BASE_DIR"} \
           "$($PARALLEL && echo "--parallel")" \
