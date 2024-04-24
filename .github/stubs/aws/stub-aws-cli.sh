@@ -22,7 +22,7 @@ if [[ ${1:-} == cloudformation && ${2:-} == describe-stacks ]]; then
     stacks=$(jq '{Stacks: [.]}' <<< "$stack_info")
   fi
 
-  [[ ${query:-} ]] && stacks=$(jp "$query" <<< "$stacks")
+  [[ ${query:-} ]] && stacks=$(jq "$query" <<< "$stacks")
   [[ ${output:-} == text ]] && stacks=$(jq --raw-output '.[]?' <<< "$stacks")
 
   echo "$stacks"
