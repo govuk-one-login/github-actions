@@ -187,6 +187,7 @@ runs:
 
     - name: Start pipeline execution
       if: ${{ steps.check-artifact-exists.outputs.artifact-version != null }}
+      id: start-execution
       shell: bash
       env:
         PIPELINE_NAME: ${{ inputs.pipeline-name }}
