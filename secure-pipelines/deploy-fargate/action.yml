@@ -46,10 +46,6 @@ inputs:
   trigger-timeout:
     description: "The maximum number of minutes to wait for the pipeline execution to start"
     required: false
-  image-uri-param:
-    description: "The name of the image URI parameter in the CloudFormation template"
-    required: false
-    default: ImageURI
 outputs:
   pipeline-url:
     description: "The URL of the pipeline consuming the uploaded artifact"
@@ -138,16 +134,6 @@ runs:
       id: get-timestamp
       shell: bash
       run: echo "timestamp=$(date)" >> "$GITHUB_OUTPUT"
-
-    - name: Set image URI
-      shell: bash
-      env:
-        PARAM: ${{ inputs.image-uri-param }}
-        COMMIT_SHA: ${{ github.sha }}
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        REPOSITORY: ${{ inputs.ecr-repository }}
-        TEMPLATE: ${{ inputs.template }}
-      run: yq eval -i ".Parameters.$PARAM.Default=\"$REGISTRY/$REPOSITORY:$COMMIT_SHA\"" "$TEMPLATE"
 
     - name: Push image and upload package
       if: ${{ steps.check-artifact-exists.outputs.artifact-version == null }}
