@@ -32,6 +32,9 @@ inputs:
     description: "Path to the directory to build"
     required: false
     default: "."
+  build-args:
+    description: "A list of build-time variables separated by spaces or newlines in the format NAME=VALUE"
+    required: false
   artifact-name:
     description: "Name of the artifact to download before building the image"
     required: false
@@ -147,12 +150,18 @@ runs:
         IMAGE_TAGS: ${{ inputs.image-tags }}
         DOCKERFILE: ${{ inputs.dockerfile }}
         BUILD_PATH: ${{ inputs.build-path }}
+        BUILD_ARGS: ${{ inputs.build-args }}
       run: |
         echo "::group::Build image"
+        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}
+
         read -ra tags < <(xargs <<< "$IMAGE_TAGS")
         read -ra tags <<< "${tags[@]/#/--tag $REGISTRY/$REPOSITORY:}"
-        image_name=${IMAGE_VERSION:+$REGISTRY/$REPOSITORY:$IMAGE_VERSION}
-        docker build ${image_name:+--tag $image_name} "${tags[@]}" ${DOCKERFILE:+--file $DOCKERFILE} "$BUILD_PATH"
+
+        read -ra args < <(xargs <<< "$BUILD_ARGS")
+        read -ra args <<< "${args[@]/#/--build-arg }"
+
+        docker build ${image_name:+--tag $image_name} "${tags[@]}" "${args[@]}" ${DOCKERFILE:+--file $DOCKERFILE} "$BUILD_PATH"
         echo "::endgroup::"
 
     - name: Push Docker image
