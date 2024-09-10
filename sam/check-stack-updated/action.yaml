@@ -28,4 +28,4 @@ runs:
 
     - name: Run testing script
       shell: bash
-      run: STACK_NAME=${{ inputs.stack_name }} python3 ${{ github.action_path }}/api_call.py
+      run: STACK_NAME=${{ inputs.stack-name }} python3 ${{ github.action_path }}/api_call.py
