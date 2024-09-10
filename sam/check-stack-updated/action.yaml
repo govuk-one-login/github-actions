@@ -1,0 +1,30 @@
+name: pre-merge-polling check
+inputs:
+  gh-polling-role:
+    description: the  arn of the role  to poll  with
+    required: true
+  stack-name:
+    description: the stack we are waiting for
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set up Python 3.9
+      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.0.2
+      with:
+        python-version: "3.9"
+        cache: "pip"
+
+    - name: install requirements
+      shell: bash
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+
+    - name: Set up AWS creds
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+      with:
+        role-to-assume: ${{ inputs.gh-polling-role }}
+        aws-region: eu-west-2
+
+    - name: Run testing script
+      shell: bash
+      run: STACK_NAME=${{ inputs.stack_name }} python3 ${{ github.action_path }}/api_call.py
