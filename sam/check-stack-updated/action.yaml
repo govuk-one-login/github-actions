@@ -24,6 +24,7 @@ runs:
       with:
         role-to-assume: ${{ inputs.gh-polling-role }}
         aws-region: eu-west-2
+        role-session-name: ""
 
     - name: Run testing script
       shell: bash
