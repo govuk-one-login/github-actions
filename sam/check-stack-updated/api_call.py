@@ -17,7 +17,7 @@ def call_describe_stack_events(stack_name):
         return response
     except Exception as e:
         print(f"Error fetching stack events: {e}")
-        return None
+        raise e
 
 
 def check_stack_status(event, from_date):
