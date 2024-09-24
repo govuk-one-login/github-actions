@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 import boto3
+import botocore.exceptions
 import time
 import os
 
@@ -68,7 +69,7 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
                 if update_failed:
                     print("Stack update failed.")
                     return -1
-        except ValidationError:
+        except botocore.exceptions.ValidationError:
             print("There was an ValidationError")
         finally:
             attempts += 1
