@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
-
-import botocore.exceptions
-from botocore
+import botocore
 import boto3
 import time
 import os
