@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 import boto3
-import botocore.exceptions
+import botocore
 import time
 import os
 
