@@ -22,6 +22,7 @@ def call_describe_stack_events(stack_name):
 def check_stack_status(event, from_date):
     update_complete = False
     create_complete = False
+    update_failed = False
 
     # print(event)
 
@@ -32,8 +33,10 @@ def check_stack_status(event, from_date):
                 update_complete = True
             if resource_status == 'CREATE_COMPLETE':
                 create_complete = True
+            if resource_status == 'ROLLBACK_IN_PROGRESS':
+                update_failed = True
 
-    return update_complete, create_complete
+    return update_complete, create_complete, update_failed
 
 
 def wait_for_stack_status(stack_name, from_date, max_attempts=100):
@@ -52,7 +55,7 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
         for i in range(0, num_events):
             event = events[i]
 
-            update_complete, create_complete = (
+            update_complete, create_complete, update_failed = (
                 check_stack_status(event, from_date))
             if update_complete:
                 print("Stack update complete.")
@@ -61,6 +64,9 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
             if create_complete:
                 print("Stack creation complete.")
                 return
+            if update_failed:
+                print("Stack update failed.")
+                return -1
 
         attempts += 1
         print(f"Attempt {attempts}/{max_attempts}: Waiting for stack to reach desired status...")
