@@ -12,12 +12,9 @@ stack_name = os.environ['STACK_NAME']
 
 
 def call_describe_stack_events(stack_name):
-    try:
-        response = client.describe_stack_events(StackName=stack_name)
-        return response
-    except Exception as e:
-        print(f"Error fetching stack events: {e}")
-        raise e
+    response = client.describe_stack_events(StackName=stack_name)
+    return response
+
 
 
 def check_stack_status(event, from_date):
