@@ -10,13 +10,6 @@ client = boto3.client('cloudformation')
 # Name of the CloudFormation stack
 stack_name = os.environ['STACK_NAME']
 
-
-def call_describe_stack_events(stack_name):
-    response = client.describe_stack_events(StackName=stack_name)
-    return response
-
-
-
 def check_stack_status(event, from_date):
     update_complete = False
     create_complete = False
@@ -42,7 +35,7 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
     attempts = 0
     while attempts < max_attempts:
         try:
-            response = call_describe_stack_events(stack_name)
+            response = client.describe_stack_events(StackName=stack_name)
             if not response:
                 print("No response received.")
                 break
