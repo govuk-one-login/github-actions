@@ -72,5 +72,5 @@ def wait_for_stack_status(stack_name, from_date, max_attempts):
 
 if __name__ == "__main__":
     now_date = datetime.now(timezone.utc)
-    wait_for_stack_status(stack_name, now_date, 200)
+    wait_for_stack_status(stack_name, now_date, 1000)
     print("Script execution completed.")
