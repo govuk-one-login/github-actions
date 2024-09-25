@@ -30,7 +30,7 @@ def check_stack_status(event, from_date):
     return update_complete, create_complete, update_failed
 
 
-def wait_for_stack_status(stack_name, from_date, max_attempts=100):
+def wait_for_stack_status(stack_name, from_date, max_attempts):
     print(f"Waiting for stack {stack_name} to reach CREATE_COMPLETE, or UPDATE_COMPLETE status...")
     attempts = 0
     while attempts < max_attempts:
@@ -68,9 +68,9 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
 
 
     print("Max attempts reached or desired status not found within the attempts limit.")
-
+    exit(os.EX_DATAERR)
 
 if __name__ == "__main__":
     now_date = datetime.now(timezone.utc)
-    wait_for_stack_status(stack_name, now_date, 100)
+    wait_for_stack_status(stack_name, now_date, 200)
     print("Script execution completed.")
