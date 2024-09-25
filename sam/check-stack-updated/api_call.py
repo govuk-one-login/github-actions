@@ -59,7 +59,7 @@ def wait_for_stack_status(stack_name, from_date, max_attempts=100):
                 if update_failed:
                     print("Stack update failed.")
                     return -1
-        except botocore.exceptions.ValidationError:
+        except botocore.exceptions.ClientError:
             print("There was an ValidationError")
         finally:
             attempts += 1
