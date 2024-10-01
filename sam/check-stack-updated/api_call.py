@@ -4,9 +4,6 @@ import boto3
 import time
 import os
 
-# Initialize a session using CloudFormation
-client = boto3.client('cloudformation')
-
 # Name of the CloudFormation stack
 stack_name = os.environ['STACK_NAME']
 
@@ -15,7 +12,7 @@ def check_stack_status(event, from_date):
     create_complete = False
     update_failed = False
 
-    # print(event)
+   #print(event)
 
     if event['LogicalResourceId'] == stack_name:
         if event['Timestamp'] > from_date:
@@ -30,18 +27,22 @@ def check_stack_status(event, from_date):
     return update_complete, create_complete, update_failed
 
 
-def wait_for_stack_status(stack_name, from_date, max_attempts):
+def wait_for_stack_status(from_date, max_attempts):
+    # Initialize a session using CloudFormation
+    client = boto3.client('cloudformation')
     print(f"Waiting for stack {stack_name} to reach CREATE_COMPLETE, or UPDATE_COMPLETE status...")
     attempts = 0
     while attempts < max_attempts:
         try:
             response = client.describe_stack_events(StackName=stack_name)
+            #print("response")
+            #print(response)
             if not response:
                 print("No response received.")
                 break
 
             events = response['StackEvents']
-            # print(events)
+            #print(events)
             num_events = len(events)
 
             for i in range(0, num_events):
@@ -59,8 +60,8 @@ def wait_for_stack_status(stack_name, from_date, max_attempts):
                 if update_failed:
                     print("Stack update failed.")
                     exit(os.EX_DATAERR)
-        except botocore.exceptions.ClientError:
-            print("There was an ValidationError")
+        except botocore.exceptions.ClientError as e:
+            print("There was an ValidationError: {}".format(e.response['Error']['Message']))
         finally:
             attempts += 1
             print(f"Attempt {attempts}/{max_attempts}: Waiting for stack to reach desired status...")
@@ -70,7 +71,8 @@ def wait_for_stack_status(stack_name, from_date, max_attempts):
     print("Max attempts reached or desired status not found within the attempts limit.")
     exit(os.EX_DATAERR)
 
+
 if __name__ == "__main__":
     now_date = datetime.now(timezone.utc)
-    wait_for_stack_status(stack_name, now_date, 1000)
+    wait_for_stack_status(now_date, 1000)
     print("Script execution completed.")
