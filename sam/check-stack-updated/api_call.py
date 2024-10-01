@@ -23,6 +23,8 @@ def check_stack_status(event, from_date):
                 create_complete = True
             if resource_status == 'ROLLBACK_IN_PROGRESS':
                 update_failed = True
+            if resource_status == 'UPDATE_ROLLBACK_IN_PROGRESS':
+                update_failed = True
 
     return update_complete, create_complete, update_failed
 
