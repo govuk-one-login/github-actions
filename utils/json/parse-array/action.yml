@@ -1,0 +1,23 @@
+name: "Parse a JSON array"
+description: "Parse a string into a JSON array"
+
+inputs:
+  array:
+    description: "The string to parse with values delimited by newlines or spaces"
+    required: true
+
+outputs:
+  json:
+    description: "The parsed JSON array"
+    value: ${{ steps.parse.outputs.json }}
+
+runs:
+  using: composite
+  steps:
+    - name: Parse array
+      id: parse
+      shell: bash
+      env:
+        STRING: ${{ inputs.array }}
+        PARSE: ${{ github.action_path }}/parse-array.sh
+      run: echo "json=$($PARSE)" >> "$GITHUB_OUTPUT"
