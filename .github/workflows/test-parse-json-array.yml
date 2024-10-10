@@ -23,11 +23,8 @@ jobs:
           array: one two three
 
       - name: Check single-line parameters parsed
-        env:
-          VAL: ${{ toJSON(steps.single-line-array.outputs) }}
         run: |
-          echo "val: $VAL"
-          [[ ${{ steps.single-line-array.outputs.json }} == ["one","two","three"] ]]
+          [[ '${{ steps.single-line-array.outputs.json }}' == '["one","two","three"]' ]]
 
 
 #      - name: Parse single-line parameters without quotes
