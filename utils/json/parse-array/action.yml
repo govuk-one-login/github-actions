@@ -7,7 +7,7 @@ inputs:
     required: true
 
 outputs:
-  json:
+  array-json:
     description: "The parsed JSON array"
     value: ${{ steps.parse.outputs.json }}
 
