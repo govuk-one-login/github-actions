@@ -2,16 +2,20 @@
 
 set -eu
 base_dir="$(dirname "${BASH_SOURCE[0]}")"
-report="$base_dir"/../../report-step-result/print-list.sh
-failed=()
 
-: "${STACK_NAMES}"    # Names of the stacks to delete (space or newline-delimited string)
-: "${ONLY_FAILED}"    # Whether to only delete stacks in one of the failed states
-: "${VERBOSE:=false}" # Whether to print messages for non-deleted stacks
+: "${STACK_NAMES}"          # Names of the stacks to delete (space or newline-delimited string)
+: "${ONLY_FAILED}"          # Whether to only delete stacks in one of the failed states
+: "${EMPTY_BUCKETS:=false}" # Whether to empty stack buckets before deletion
+: "${VERBOSE:=false}"       # Whether to print messages for non-deleted stacks
 
-stacks=$("$base_dir"/../cloudformation/check-stacks-exist.sh)
+$VERBOSE && step_summary=$GITHUB_STEP_SUMMARY
+report="$base_dir/../../report-step-result/print-list.sh"
+
+stacks=$("$base_dir/../cloudformation/check-stacks-exist.sh")
 missing=$(jq --raw-output '."missing-stacks"' <<< "$stacks")
 existing=$(jq --raw-output '."existing-stacks"' <<< "$stacks")
+failed=()
+
 read -ra stacks <<< "$existing"
 
 for stack in "${stacks[@]}"; do
@@ -27,10 +31,17 @@ for stack in "${stacks[@]}"; do
     fi
   fi
 
+  if $EMPTY_BUCKETS; then
+    buckets=$(STACK_NAME=$stack VERBOSE=$VERBOSE "$base_dir/../cloudformation/list-stack-buckets.sh")
+
+    if [[ $buckets ]]; then
+      VALUES=$buckets CODE_BLOCK=false MESSAGE="Found buckets in stack $stack" $report
+      for bucket in $buckets; do BUCKET=$bucket VERBOSE=$VERBOSE "$base_dir/../s3/empty-bucket.sh"; done
+    fi
+  fi
+
   sam delete --no-prompts --region "$AWS_REGION" --stack-name "$stack" && deleted+=("$stack") || failed+=("$stack")
 done
-
-$VERBOSE && step_summary=$GITHUB_STEP_SUMMARY
 
 VALUES=${missing[*]} MESSAGE="Non-existent stacks" SINGLE_MESSAGE="Stack %s does not exist" $report |
   tee -a "${step_summary[@]}"
