@@ -9,7 +9,7 @@ failed=()
 : "${ONLY_FAILED}"    # Whether to only delete stacks in one of the failed states
 : "${VERBOSE:=false}" # Whether to print messages for non-deleted stacks
 
-stacks=$("$base_dir"/check-stacks-exist.sh)
+stacks=$("$base_dir"/../cloudformation/check-stacks-exist.sh)
 missing=$(jq --raw-output '."missing-stacks"' <<< "$stacks")
 existing=$(jq --raw-output '."existing-stacks"' <<< "$stacks")
 read -ra stacks <<< "$existing"

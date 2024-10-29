@@ -11,7 +11,7 @@ REPORT="$BASE_DIR"/../../report-step-result/print-file.sh
 OUTPUT="$RUNNER_TEMP"/validate.output
 RESULTS="$RUNNER_TEMP"/validate.results
 
-sam validate --template "$TEMPLATE" --region $AWS_REGION | tee "$OUTPUT" || cat "$OUTPUT" >> "$RESULTS"
+sam validate --template "$TEMPLATE" --region "$AWS_REGION" | tee "$OUTPUT" || cat "$OUTPUT" >> "$RESULTS"
 sam validate --template "$TEMPLATE" --lint | tee "$OUTPUT" || cat "$OUTPUT" >> "$RESULTS"
 
 [[ -s $RESULTS ]] || exit 0
