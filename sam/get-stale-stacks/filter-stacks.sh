@@ -39,4 +39,8 @@ for stack in "${stack_names[@]}"; do
   echo "$stack | last updated: $last_updated_date"
 done
 
+[[ ${stale_stacks[*]} && ${#stale_stacks[@]} -gt 0 ]] &&
+  stale_stacks_json=$(jq --raw-input < <(IFS=$'\n' && echo "${stale_stacks[*]}") | jq --slurp --compact-output)
+
 echo "stack-names=${stale_stacks[*]}" >> "$GITHUB_OUTPUT"
+echo "stack-names-json=${stale_stacks_json:-[]}" >> "$GITHUB_OUTPUT"
