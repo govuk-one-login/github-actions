@@ -1,6 +1,13 @@
 name: "Get stale stacks"
 description: "Retrieve names of AWS SAM stacks older than a set threshold, and filtered by name and tags"
 inputs:
+  aws-role-arn:
+    description: "AWS role ARN to assume when validating the template"
+    required: false
+  aws-region:
+    description: "AWS region to use"
+    required: false
+    default: eu-west-2
   threshold-days:
     description: "Get stacks older than the specified number of days"
     required: false
@@ -21,9 +28,19 @@ outputs:
   stack-names:
     description: "Filtered stack names"
     value: ${{ steps.filter-stacks.outputs.stack-names }}
+  stack-names-json:
+    description: "Filtered stack names formatted as a JSON array"
+    value: ${{ steps.filter-stacks.outputs.stack-names-json }}
 runs:
   using: composite
   steps:
+    - name: Assume AWS Role
+      if: ${{ inputs.aws-role-arn != null }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+
     - name: Parse tag filters
       id: parse-tag-filters
       shell: bash

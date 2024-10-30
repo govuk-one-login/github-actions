@@ -15,6 +15,9 @@ inputs:
     description: "Delete a stack only if it is in one of the failed states"
     required: false
     default: "false"
+  empty-buckets:
+    description: "Empty stack buckets before deletion. This will result in long runtimes for large buckets."
+    default: "false"
   verbose:
     description: "Print all output messages"
     required: false
@@ -36,4 +39,5 @@ runs:
       env:
         STACK_NAMES: ${{ inputs.stack-names }}
         ONLY_FAILED: ${{ inputs.only-if-failed == 'true' }}
+        EMPTY_BUCKETS: ${{ inputs.empty-buckets == 'true' }}
         VERBOSE: ${{ inputs.verbose == 'true' }}
