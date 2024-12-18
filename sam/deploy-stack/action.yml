@@ -84,8 +84,8 @@ runs:
     - name: Cache SAM dependencies
       uses: actions/cache@v4
       with:
-        key: ${{ inputs.cache-key || format('{0}-{1}-{2}-{3}', 'sam', inputs.cache-name, runner.os, hashFiles(inputs.template || '**/template.y*ml')) }}
-        restore-keys: ${{ inputs.cache-restore-keys || format('{0}-{1}-{2}-', 'sam', inputs.cache-name, runner.os) }}
+        key: ${{ inputs.cache-key || format('sam-{0}-{1}-{2}', inputs.cache-name, runner.os, hashFiles(inputs.template || '**/template.y*ml')) }}
+        restore-keys: ${{ inputs.cache-restore-keys || format('sam-{0}-{1}-', inputs.cache-name, runner.os) }}
         path: .aws-sam
 
     - name: Get distribution artifact

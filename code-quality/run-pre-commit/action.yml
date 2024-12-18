@@ -77,6 +77,7 @@ runs:
         path: ~/.cache/pre-commit
 
     - name: Run pre-commit
+      id: run-pre-commit
       shell: bash
       env:
         ARGS: ${{ steps.check-merge-commit.outputs.files }} ${{ inputs.args }}
@@ -87,7 +88,7 @@ runs:
           (git restore . && pre-commit run --show-diff-on-failure --color=never "${args[@]}" >> "$OUTPUT_FILE")
 
     - name: Report pre-commit result
-      if: ${{ failure() }}
+      if: ${{ failure() && steps.run-pre-commit.outcome == 'failure' }}
       shell: bash
       env:
         REPORT: ${{ github.action_path }}/../../scripts/report-step-result/print-file.sh
