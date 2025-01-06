@@ -9,6 +9,9 @@ inputs:
     description: "Install dev packages from package.json - this is needed for hooks which have dependencies"
     required: false
     default: "false"
+  node-version:
+    description: "Node version to set up. The system version is used if not specified."
+    required: false
   package-manager:
     description: "The package manager to use to install dependencies - npm or yarn"
     required: false
@@ -55,6 +58,7 @@ runs:
       if: ${{ inputs.install-dependencies == 'true' }}
       uses: actions/setup-node@v4
       with:
+        node-version: ${{ inputs.node-version }}
         cache: ${{ inputs.package-manager }}
 
     - name: Install dependencies
