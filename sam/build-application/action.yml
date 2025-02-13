@@ -24,6 +24,9 @@ inputs:
     description: "Whether to upload a GitHub Actions artifact"
     required: false
     default: "true"
+  sam-version:
+    description: "The SAM CLI version to set up. The system version is used if not specified."
+    required: false
   enable-beta-features:
     description: "Use SAM beta features when building an application"
     required: false
@@ -56,6 +59,14 @@ runs:
     - name: Pull repository
       if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
+
+    - name: Set up SAM CLI
+      if: ${{ inputs.sam-version != null }}
+      uses: aws-actions/setup-sam@v2
+      with:
+        version: ${{ inputs.sam-version }}
+        token: ${{ github.token }}
+        use-installer: true
 
     - name: Validate SAM template
       shell: bash
