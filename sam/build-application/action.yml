@@ -43,6 +43,10 @@ inputs:
     description: "Whether to pull the repository before building"
     required: false
     default: "false"
+  ref:
+    description: "a specific branch, tag or sha"
+    required: false 
+    default: "false"
 outputs:
   artifact-name:
     description: "Pass through the artifact name"
@@ -59,6 +63,8 @@ runs:
     - name: Pull repository
       if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.ref }}
 
     - name: Set up SAM CLI
       if: ${{ inputs.sam-version != null }}
