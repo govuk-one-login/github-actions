@@ -16,7 +16,7 @@ echo "Cut off date: $cut_off_date"
 stacks=$(aws cloudformation describe-stacks | jq '.Stacks[]')
 
 stack_names=$(jq -r '.StackName' <<< "$stacks")
-[[ $name_filter ]] && stack_names=$(grep "$name_filter" <<< "$stack_names")
+[[ $name_filter ]] && stack_names=$(grep "$name_filter" <<< "$stack_names" || true)
 mapfile -t stack_names <<< "$stack_names"
 
 tag_names=("${!tag_filters[@]}")
