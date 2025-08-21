@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Pull repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up stub CF CLI
         run: echo "./.github/stubs/cf" >> "$GITHUB_PATH"
