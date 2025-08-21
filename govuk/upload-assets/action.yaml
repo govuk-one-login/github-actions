@@ -42,7 +42,7 @@ runs:
   steps:
     - name: Pull repository
       if: ${{ inputs.pull-repository == 'true' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Node
       uses: actions/setup-node@v4
