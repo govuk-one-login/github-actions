@@ -65,7 +65,7 @@ runs:
         path: ${{ inputs.artifact-path }}
 
     - name: Assume AWS Role
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
         role-to-assume: ${{ inputs.aws-role-arn }}
         role-session-name: ${{ inputs.aws-session-name }}
