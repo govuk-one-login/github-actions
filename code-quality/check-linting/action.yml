@@ -37,7 +37,7 @@ runs:
 
     - name: Set up Node
       if: ${{ inputs.run-prettier == 'true' || inputs.run-eslint == 'true' }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         cache: npm
 
