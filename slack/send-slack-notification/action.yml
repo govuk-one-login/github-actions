@@ -1,0 +1,25 @@
+name: "Send a Slack Notification"
+description: "Sends a notification to a Slack channel"
+inputs:
+  sns-topic-arn:
+    description: "SNS Topic ARN to publish the notification to"
+    required: true
+  message-description:
+    description: "Description/body of the message to send"
+    required: true
+  message-title:
+    description: "Title of the message to send"
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Slack notification
+      id: slack-notification
+      shell: bash
+      env:
+        SNS_TOPIC_ARN: ${{ inputs.sns-topic-arn }}
+        MESSAGE_TITLE: ${{ inputs.message-title }}
+        MESSAGE_DESCRIPTION: ${{ inputs.message-description }}
+      run: |
+        echo ${{ github.action_path }}
+        ${{ github.action_path }}/../scripts/slack-notification.sh

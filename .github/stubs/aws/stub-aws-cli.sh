@@ -83,5 +83,21 @@ if [[ ${1:-} == kms ]] && [[ ${2:-} == sign ]]; then
   exit 0
 fi
 
+if [[ ${1:-} == sns ]] && [[ ${2:-} == publish ]]; then
+  set -- "${@:3}"
+  while [[ ${1:-} ]]; do
+    case $1 in
+      --topic-arn) shift && sns_topic_arn="$1" ;;
+      --message) shift && sns_message="$1" ;;
+    esac
+    shift
+  done
+
+  echo "SNS_TOPIC_ARN=$sns_topic_arn" >> "$GITHUB_ENV"
+  sns_message=$(echo "$sns_message" | jq -r '.content.description')
+  echo "SNS_MESSAGE=$sns_message" >> "$GITHUB_ENV"
+  exit 0
+fi
+
 echo "Unknown command: $*"
 exit 1
