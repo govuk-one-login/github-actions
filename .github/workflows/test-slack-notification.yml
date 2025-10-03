@@ -1,0 +1,26 @@
+name: Slack notification test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-slack-notification-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v5
+
+      - name: Set up stub AWS CLI
+        run: echo "./.github/stubs/aws" >> "$GITHUB_PATH"
+
+      - name: Slack notification
+        uses: ./slack-notification
+        id: slack-notification
+        with:
+          sns-arn: some-arn
+        continue-on-error: true
