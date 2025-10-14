@@ -1,0 +1,43 @@
+name: Slack notification test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-slack-notification-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v5
+
+      - name: Set up stub AWS CLI
+        run: echo "./.github/stubs/aws" >> "$GITHUB_PATH"
+
+      - name: Slack notification
+        env:
+          WORKDIR: ${{ github.workspace }}
+        uses: ./slack/send-slack-notification
+        id: slack-notification
+        with:
+          sns-topic-arn: some-sns-topic-arn
+          message-description: "Sending a slack notification"
+
+
+      - name: Check sns topic arn output
+        run: |
+          if [[ "${SNS_TOPIC_ARN}" != "some-sns-topic-arn" ]]; then
+            echo "Unexpected SNS TOPIC ARN"
+            exit 1
+          fi
+
+      - name: Check message output
+        run: |
+          if [[ "${SNS_MESSAGE}" != "Sending a slack notification" ]]; then
+            echo "Unexpected Message"
+            exit 1
+          fi
