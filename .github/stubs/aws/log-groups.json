@@ -1,0 +1,44 @@
+{
+  "logGroups": [
+    {
+      "logGroupName": "/aws/lambda/managed-function",
+      "creationTime": 1755817200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/aws/lambda/recent-function",
+      "creationTime": 1758841200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/aws/lambda/stale-unmanaged-function",
+      "creationTime": 1755817200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/pre-merge-test-abc123",
+      "creationTime": 1756249200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "API-Gateway-Execution-Logs_abc123xyz/dev",
+      "creationTime": 1755817200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/aws/lambda/unknown-pattern-stale",
+      "creationTime": 1756249200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/aws/lambda/fail-to-delete-test",
+      "creationTime": 1755817200000,
+      "storedBytes": 0
+    },
+    {
+      "logGroupName": "/aws/lambda/active-with-data",
+      "creationTime": 1755817200000,
+      "storedBytes": 1024000
+    }
+  ]
+}

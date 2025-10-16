@@ -1,0 +1,65 @@
+name: "Delete stale log groups"
+description: "Delete log groups that are not under management by a stack and have gone stale"
+inputs:
+  aws-role-arn:
+    description: "AWS role ARN to assume when deleting the log groups"
+    required: false
+  aws-region:
+    description: "AWS region to use"
+    required: false
+    default: eu-west-2
+  destructive:
+    description: "Actually delete log groups"
+    required: false
+    default: "false"
+  cutoff-days:
+    description: "Age in days to consider log groups stale"
+    required: false
+    default: "30"
+  limit:
+    description: "Maximum number of log groups that can be deleted per run (unset = no limit)"
+    required: false
+  safe-patterns:
+    description: "| delimited list of regexs that are safe to delete e.g. '/pre-merge-|^API-Gateway-Execution-Logs_' (unset = everything needs review)"
+    required: false
+  verbose:
+    description: "Print all output messages"
+    required: false
+    default: "false"
+outputs:
+  deleted-count:
+    description: "Number of log groups deleted (only set when destructive=true)"
+    value: ${{ steps.delete-stale-log-groups.outputs.deleted-count }}
+  failed-count:
+    description: "Number of log groups that failed to delete (only set when destructive=true)"
+    value: ${{ steps.delete-stale-log-groups.outputs.failed-count }}
+  would-delete-count:
+    description: "Number of log groups that would be deleted (only set when destructive=false)"
+    value: ${{ steps.delete-stale-log-groups.outputs.would-delete-count }}
+  review-count:
+    description: "Number of log groups requiring manual review"
+    value: ${{ steps.delete-stale-log-groups.outputs.review-count }}
+  stale-total:
+    description: "Total number of stale log groups found"
+    value: ${{ steps.delete-stale-log-groups.outputs.stale-total }}
+
+runs:
+  using: composite
+  steps:
+    - name: Assume AWS Role
+      if: ${{ inputs.aws-role-arn != '' }}
+      uses: aws-actions/configure-aws-credentials@v5
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Delete stale log groups
+      id: delete-stale-log-groups
+      run: ${{ github.action_path }}/../../scripts/aws/sam/delete-stale-log-groups.sh
+      shell: bash
+      env:
+        DESTRUCTIVE: ${{ github.ref == 'refs/heads/main' && inputs.destructive || 'false' }}
+        CUTOFF_DAYS: ${{ inputs.cutoff-days }}
+        VERBOSE: ${{ inputs.verbose }}
+        LIMIT: ${{ inputs.limit }}
+        SAFE_PATTERNS: ${{ inputs.safe-patterns }}

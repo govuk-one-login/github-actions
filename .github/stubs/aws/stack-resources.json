@@ -1,0 +1,22 @@
+{
+  "test-one": {
+    "StackResources": [
+      {
+        "StackName": "test-one",
+        "PhysicalResourceId": "/aws/lambda/managed-function",
+        "ResourceType": "AWS::Logs::LogGroup",
+        "ResourceStatus": "CREATE_COMPLETE"
+      }
+    ]
+  },
+  "test-two": {
+    "StackResources": [
+      {
+        "StackName": "test-two",
+        "PhysicalResourceId": "/aws/lambda/recent-function",
+        "ResourceType": "AWS::Logs::LogGroup",
+        "ResourceStatus": "CREATE_COMPLETE"
+      }
+    ]
+  }
+}

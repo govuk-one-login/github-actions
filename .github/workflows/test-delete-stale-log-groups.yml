@@ -1,0 +1,97 @@
+name: Delete stale log groups test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-delete-stale-log-groups-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    env:
+      # Test time: 1 October 2025 02:00:00.000
+      CURRENT_TIME_MS: "1759284000000"
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v5
+
+      - name: Set up stub AWS CLI
+        run: echo "./.github/stubs/aws" >> "$GITHUB_PATH"
+
+      - name: Test with defaults (no safe patterns)
+        id: test-defaults
+        uses: ./sam/delete-stale-log-groups
+
+      - name: Verify defaults output
+        run: |
+          # Default cutoff is 30 days, no limit, no patterns
+          # Total log groups: 8
+          # Stale: 6
+          # Managed: 1
+          # Stale unmanaged: 5 logs
+          # No safe patterns, so all 5 need review
+          [[ "${{ steps.test-defaults.outputs.would-delete-count }}" -eq 0 ]]
+          [[ "${{ steps.test-defaults.outputs.review-count }}" -eq 5 ]]
+          [[ "${{ steps.test-defaults.outputs.stale-total }}" -eq 6 ]]
+
+      - name: Test with SAFE_PATTERNS set
+        id: test-safe-patterns
+        uses: ./sam/delete-stale-log-groups
+        with:
+          safe-patterns: "/pre-merge-|^API-Gateway-Execution-Logs_"
+
+      - name: Verify SAFE_PATTERNS output
+        run: |
+          # Safe patterns match: 2
+          # Need review: 3
+          [[ "${{ steps.test-safe-patterns.outputs.would-delete-count }}" -eq 2 ]]
+          [[ "${{ steps.test-safe-patterns.outputs.review-count }}" -eq 3 ]]
+          [[ "${{ steps.test-safe-patterns.outputs.stale-total }}" -eq 6 ]]
+
+      - name: Test with LIMIT set
+        id: test-limit
+        uses: ./sam/delete-stale-log-groups
+        with:
+          safe-patterns: "/pre-merge-|^API-Gateway-Execution-Logs_"
+          limit: "1"
+
+      - name: Verify LIMIT output
+        run: |
+          [[ "${{ steps.test-limit.outputs.would-delete-count }}" -eq 1 ]]
+          [[ "${{ steps.test-limit.outputs.review-count }}" -eq 3 ]]
+          [[ "${{ steps.test-limit.outputs.stale-total }}" -eq 6 ]]
+
+      - name: Test with CUTOFF_DAYS set (long - no stale logs)
+        id: test-cutoff-long
+        uses: ./sam/delete-stale-log-groups
+        with:
+          cutoff-days: "1000"
+          safe-patterns: "/pre-merge-"
+
+      - name: Verify CUTOFF_DAYS (long) output
+        run: |
+          # No logs old enough to be stale
+          [[ "${{ steps.test-cutoff-long.outputs.would-delete-count }}" -eq 0 ]]
+          [[ "${{ steps.test-cutoff-long.outputs.review-count }}" -eq 0 ]]
+          [[ "${{ steps.test-cutoff-long.outputs.stale-total }}" -eq 0 ]]
+
+      - name: Test with CUTOFF_DAYS set (short - stale logs)
+        id: test-cutoff-short
+        uses: ./sam/delete-stale-log-groups
+        with:
+          cutoff-days: "3"
+          safe-patterns: "/pre-merge-"
+
+      - name: Verify CUTOFF_DAYS (short) output
+        run: |
+          # Stale: everything (7)
+          # Managed: 2
+          # Stale unmanaged: 5
+          # Pattern matches: 1
+          # Need review: 4
+          [[ "${{ steps.test-cutoff-short.outputs.would-delete-count }}" -eq 1 ]]
+          [[ "${{ steps.test-cutoff-short.outputs.review-count }}" -eq 4 ]]
+          [[ "${{ steps.test-cutoff-short.outputs.stale-total }}" -eq 7 ]]
