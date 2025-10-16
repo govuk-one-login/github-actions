@@ -83,6 +83,46 @@ if [[ ${1:-} == kms ]] && [[ ${2:-} == sign ]]; then
   exit 0
 fi
 
+if [[ ${1:-} == cloudformation && ${2:-} == describe-stack-resources ]]; then
+  stack_resources_file="$(dirname "${BASH_SOURCE[0]}")/stack-resources.json"
+
+  set -- "${@:3}"
+  while [[ ${1:-} ]]; do
+    case $1 in
+      --stack-name) shift && stack_name=$1 ;;
+      --output) shift && output=$1 ;;
+    esac
+    shift
+  done
+
+  if [[ ${stack_name:-} ]]; then
+    resources=$(jq --arg stackName "$stack_name" '.[$stackName] // empty' "$stack_resources_file")
+    if [[ -z "$resources" || "$resources" == "null" ]]; then
+      echo '{"StackResources":[]}' # exists but has no resources
+    else
+      echo "$resources"
+    fi
+  else
+    cat "$stack_resources_file"
+  fi
+  exit 0
+fi
+
+if [[ ${1:-} == logs && ${2:-} == describe-log-groups ]]; then
+  log_groups=$(cat "$(dirname "${BASH_SOURCE[0]}")/log-groups.json")
+
+  set -- "${@:3}"
+  while [[ ${1:-} ]]; do
+    case $1 in
+      --output) shift && output=$1 ;;
+    esac
+    shift
+  done
+
+  echo "$log_groups"
+  exit 0
+fi
+
 if [[ ${1:-} == sns ]] && [[ ${2:-} == publish ]]; then
   set -- "${@:3}"
   while [[ ${1:-} ]]; do
