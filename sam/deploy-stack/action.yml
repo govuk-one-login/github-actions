@@ -90,7 +90,7 @@ runs:
 
     - name: Get distribution artifact
       if: ${{ inputs.artifact-name != null }}
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
