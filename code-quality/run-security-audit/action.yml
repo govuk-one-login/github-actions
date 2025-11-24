@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Pull repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 
