@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Pull repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up stub GitHub CLI
         run: echo "./.github/stubs/gh" >> "$GITHUB_PATH"
