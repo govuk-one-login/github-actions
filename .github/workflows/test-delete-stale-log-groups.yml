@@ -16,7 +16,7 @@ jobs:
       CURRENT_TIME_MS: "1759284000000"
     steps:
       - name: Pull repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up stub AWS CLI
         run: echo "./.github/stubs/aws" >> "$GITHUB_PATH"
