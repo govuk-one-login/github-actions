@@ -15,6 +15,10 @@ inputs:
     description: "Encode parsed parameters in the format key=<key>,value='<value>' (if not using an associative array)"
     required: false
     default: "false"
+  delimiter:
+    description: "The delimiter used to separate key=value pairs on a single line"
+    required: false
+    default: |
 outputs:
   parsed-parameters:
     description: "A string representation of a regular or an associative array containing the parsed params"
@@ -26,6 +30,7 @@ runs:
       id: parse-parameters
       shell: bash
       env:
+        DELIMITER: ${{ inputs.delimiter }}
         PARAMETERS: ${{ inputs.parameters }}
         LONG_FORMAT: ${{ inputs.long-format == 'true' }}
         ASSOCIATIVE_ARRAY: ${{ inputs.associative-array == 'true' }}
