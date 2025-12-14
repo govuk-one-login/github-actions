@@ -1,4 +1,4 @@
-# di-github-actions
+# github-actions
 
 This repository contains shared GitHub Actions to be used across Digital Identity projects.
 
