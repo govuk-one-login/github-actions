@@ -18,6 +18,7 @@ jobs:
       - name: Run pre-commit
         uses: ./code-quality/run-pre-commit
         with:
+          python-version: '3.13'
           install-dependencies: true
           pull-repository: false
           all-files: true
@@ -34,6 +35,7 @@ jobs:
       - name: Run Checkov
         uses: ./code-quality/run-checkov
         with:
+          python-version: '3.13'
           skip-checks: CKV_SECRET_6
           pull-repository: false
 
