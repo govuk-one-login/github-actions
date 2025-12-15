@@ -23,6 +23,7 @@ inputs:
   python-version:
     description: "Python version to set up. The system version is used if not specified."
     required: false
+    default: "3.13"
   args:
     description: "Extra arguments to pass to the pre-commit program"
     required: false
@@ -53,7 +54,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
-        python-version: ${{ inputs.python-version || '3.13' }}
+        python-version: ${{ inputs.python-version }}
         cache-dependency-path: ./.github/workflows
         cache: pip
 
