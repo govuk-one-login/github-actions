@@ -17,6 +17,10 @@ inputs:
     description: "Treat warnings as errors"
     required: false
     default: "true"
+  python-version:
+    description: "Python version to set up. The system version is used if not specified."
+    required: false
+    default: "3.x"
 runs:
   using: composite
   steps:
@@ -45,7 +49,7 @@ runs:
       if: ${{ inputs.run-cfn-lint == 'true' }}
       uses: actions/setup-python@v6
       with:
-        python-version: 3.x
+        python-version: ${{ inputs.python-version }}
         cache-dependency-path: ./.github/workflows
         cache: pip
 
