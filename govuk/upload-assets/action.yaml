@@ -16,6 +16,7 @@ inputs:
   base-path:
     description: "The path to the directory with the package.json file"
     required: false
+    default: ""
   path-to-sass:
     description: 'The path to the main sass file with "@import <path to govuk-frontend module>"'
     required: false
@@ -37,6 +38,7 @@ inputs:
   aws-session-name:
     description: "Override the default AWS session name"
     required: false
+
 runs:
   using: composite
   steps:
@@ -48,9 +50,11 @@ runs:
       uses: actions/setup-node@v6
       with:
         cache: ${{ inputs.package-manager }}
+        cache-dependency-path: ./${{ inputs.base-path}}/package-lock.json
 
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ github.workspace }}${{ inputs.base-path }}
       env:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
@@ -65,7 +69,7 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
     - name: Upload assets
-      working-directory: ${{ inputs.base-path }}
+      working-directory: ${{ github.workspace }}${{ inputs.base-path }}
       shell: bash
       env:
         SIGNING_KEY: ${{ inputs.signing-key-arn }}
