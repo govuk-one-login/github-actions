@@ -134,7 +134,7 @@ runs:
 
     - name: Get distribution artifact
       if: ${{ steps.check-image-exists.outputs.image-digest == null && inputs.artifact-name != null }}
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: ${{ inputs.artifact-name }}
         path: ${{ inputs.artifact-path }}
