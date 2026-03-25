@@ -173,6 +173,7 @@ runs:
       id: deploy-stack
       shell: bash
       env:
+        AWS_REGION: ${{ inputs.aws-region }}
         TEMPLATE: ${{ inputs.template }}
         S3_BUCKET: ${{ inputs.sam-deployment-bucket }}
         S3_PREFIX: ${{ inputs.s3-prefix || inputs.stack-name-prefix }}
@@ -181,12 +182,13 @@ runs:
         TAGS: ${{ steps.parse-tags.outputs.tags }}
       run: |
         sam deploy \
+          --region "$AWS_REGION" \
           --stack-name "$STACK_NAME" \
           --s3-bucket "$S3_BUCKET" \
           --s3-prefix "${S3_PREFIX:+$S3_PREFIX/}$STACK_NAME" \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset \
-          --capabilities CAPABILITY_NAMED_IAM \
+          --capabilities CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
           ${DISABLE_ROLLBACK:+--disable-rollback} \
           ${TEMPLATE:+--template $TEMPLATE} \
           ${PARAMETERS:+--parameter-overrides $PARAMETERS} \

@@ -10,7 +10,10 @@ inputs:
     required: false
     default: "false"
   node-version:
-    description: "Node version to set up. The system version is used if not specified."
+    description: "Node version to use. Takes precedence over node-version-file if both are specified. If neither are specificied, the system version is used."
+    required: false
+  node-version-file:
+    description: "File containing the Node version to use, for example .nvmrc, .node-version, package.json. Ignored if node-version is also specified. If neither are specified, the system version is used."
     required: false
   package-manager:
     description: "The package manager to use to install dependencies - npm or yarn"
@@ -63,6 +66,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
+        node-version-file: ${{ inputs.node-version-file }}
         cache: ${{ inputs.package-manager }}
 
     - name: Install dependencies

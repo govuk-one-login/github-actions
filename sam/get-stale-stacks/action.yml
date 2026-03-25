@@ -52,7 +52,7 @@ runs:
 
     - name: Filter stacks
       id: filter-stacks
-      run: ${{ github.action_path }}/filter-stacks.sh
+      run: ${{ github.action_path }}/../../scripts/aws/sam/filter-stacks.sh
       shell: bash
       env:
         THRESHOLD_DAYS: ${{ inputs.threshold-days }}
