@@ -142,6 +142,8 @@ if [[ $review_count -gt 0 ]]; then
 fi
 
 if $DESTRUCTIVE; then
+  deleted=()
+  failed=()
   if [[ $safe_to_delete_count -eq 0 ]]; then
     echo "✅ No log groups eligible for deletion" | tee -a "${step_summary:-/dev/null}"
   else
@@ -160,8 +162,6 @@ if $DESTRUCTIVE; then
 
     mapfile -t results < "$output_dir/deletion_results.txt"
 
-    deleted=()
-    failed=()
     for result in "${results[@]}"; do
       status="${result%%:*}"   # everything before first colon
       log_group="${result#*:}" # everything after first colon
