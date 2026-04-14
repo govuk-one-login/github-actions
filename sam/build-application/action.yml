@@ -5,6 +5,9 @@ inputs:
     description: "AWS region to use when validating the template"
     required: false
     default: eu-west-2
+  aws-role-arn:
+    description: "AWS role ARN to assume when building the stack"
+    required: false
   template:
     description: "Path of the SAM template file to use"
     required: false
@@ -60,6 +63,14 @@ runs:
       if: ${{ inputs.pull-repository == 'true' }}
       uses: actions/checkout@v6
 
+    - name: Assume AWS Role
+      if: ${{ inputs.aws-role-arn != null }}
+      uses: aws-actions/configure-aws-credentials@v6
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: false
+
     - name: Set up SAM CLI
       if: ${{ inputs.sam-version != null }}
       uses: aws-actions/setup-sam@v2
@@ -98,12 +109,14 @@ runs:
     - name: Build SAM Application
       shell: bash
       env:
+        AWS_REGION: ${{ inputs.aws-region }}
         TEMPLATE_FILE: ${{ inputs.template }}
         BETA_FEATURES: ${{ inputs.enable-beta-features == 'true' }}
         PARALLEL: ${{ inputs.disable-parallel == 'false' }}
         BASE_DIR: ${{ inputs.base-dir }}
       run: |
         sam build --cached \
+          --region "$AWS_REGION" \
           ${TEMPLATE_FILE:+--template-file "$TEMPLATE_FILE"} \
           ${BASE_DIR:+--base-dir "$BASE_DIR"} \
           "$($PARALLEL && echo "--parallel")" \
