@@ -8,6 +8,11 @@ inputs:
       CodeQL supports cpp, csharp, go, java, javascript, python, ruby
     required: false
     default: javascript-typescript
+  category:
+    description: >-
+      Specify the CodeQL analysis category.
+      This is the string CodeQL uses to match scan analyses.
+    required: false
   autobuild:
     description: >-
       Attempt to automatically build any compiled languages.
@@ -48,3 +53,5 @@ runs:
 
     - name: Perform CodeQL analysis
       uses: github/codeql-action/analyze@v4
+      with:
+        category: ${{ inputs.category }}
