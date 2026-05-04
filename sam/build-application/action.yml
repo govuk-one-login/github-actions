@@ -73,7 +73,7 @@ runs:
 
     - name: Set up SAM CLI
       if: ${{ inputs.sam-version != null }}
-      uses: aws-actions/setup-sam@v2
+      uses: aws-actions/setup-sam@v3
       with:
         version: ${{ inputs.sam-version }}
         token: ${{ github.token }}
