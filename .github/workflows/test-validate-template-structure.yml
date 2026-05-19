@@ -1,0 +1,21 @@
+name: Validate SAM template structure test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-validate-template-structure-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v6
+
+      - name: Validate template structure
+        uses: ./sam/validate-template-structure
+        with:
+          template: deploy/template.yml

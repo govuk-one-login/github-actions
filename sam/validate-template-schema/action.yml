@@ -1,0 +1,40 @@
+name: "Validate SAM template schema"
+description: "Validates a SAM/CloudFormation template structure and resource configuration using Zod"
+inputs:
+  template:
+    description: "Path of the SAM template file to validate"
+    required: false
+    default: deploy/template.yml
+  expected-resources:
+    description: "JSON array of resource logical IDs that must exist in the template"
+    required: false
+    default: "[]"
+  container-port:
+    description: "Expected container port in the ECS task definition"
+    required: false
+    default: "5090"
+  structural-only:
+    description: "Only validate the template structure, skip resource-level assertions"
+    required: false
+    default: "false"
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+      with:
+        node-version: lts/*
+
+    - name: Install dependencies
+      shell: bash
+      run: npm install --no-save zod js-yaml tsx @types/js-yaml
+
+    - name: Validate template schema
+      shell: bash
+      env:
+        TEMPLATE: ${{ inputs.template }}
+        EXPECTED_RESOURCES: ${{ inputs.expected-resources }}
+        CONTAINER_PORT: ${{ inputs.container-port }}
+        STRUCTURAL_ONLY: ${{ inputs.structural-only }}
+        VALIDATE: ${{ github.action_path }}/../../scripts/aws/sam/validate-template-schema.ts
+      run: npx tsx "$VALIDATE"
