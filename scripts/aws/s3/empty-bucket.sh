@@ -38,7 +38,7 @@ function delete-versions {
   delete-objects Versions && delete-objects DeleteMarkers
 }
 
-if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+if ! aws s3api head-bucket --bucket "$BUCKET" 2> /dev/null; then
   msg="⚠️ Bucket \`$BUCKET\` does not exist, skipping"
   echo "$msg"
   $VERBOSE && echo "$msg" >> "$GITHUB_STEP_SUMMARY"
