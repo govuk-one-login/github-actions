@@ -48,9 +48,11 @@ runs:
       uses: actions/setup-node@v6
       with:
         cache: ${{ inputs.package-manager }}
+        cache-dependency-path: ${{ inputs.base-path }}
 
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ inputs.base-path }}
       env:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
@@ -65,8 +67,8 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
     - name: Upload assets
-      working-directory: ${{ inputs.base-path }}
       shell: bash
+      working-directory: ${{ inputs.base-path }}
       env:
         SIGNING_KEY: ${{ inputs.signing-key-arn }}
         STACK_NAME: ${{ inputs.stack-name }}

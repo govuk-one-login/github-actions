@@ -3,7 +3,7 @@ set -eu
 govuk_fe_version=$(jq --raw-output .version node_modules/govuk-frontend/package.json | tee govuk_fe_version.txt)
 
 [[ $PATH_TO_SASS ]] && sed -i \
-  "s/\(@import .*\/node_modules\/govuk-frontend\/govuk\/base\";\)/\$govuk-assets-path: \"\/v-$govuk_fe_version\/\";\n\1/" \
+  "s/\(@use .*\/node_modules\/govuk-frontend\/dist\/govuk\/index\";.*\)/\$govuk-assets-path: \"\/v-$govuk_fe_version\/\";\n\1/" \
   "$PATH_TO_SASS"
 
 $PKG_MGR run build

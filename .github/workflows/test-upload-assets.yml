@@ -22,7 +22,7 @@ jobs:
         run: cp govuk/upload-assets/package*.json .
 
       - name: Make fake sass
-        run: echo '@import "../../../node_modules/govuk-frontend/govuk/base";' > fakesass.scss
+        run: echo '@use "../../../node_modules/govuk-frontend/dist/govuk/index";' > fakesass.scss
 
       - name: Upload assets
         uses: ./govuk/upload-assets
@@ -39,7 +39,7 @@ jobs:
         run: |
           diff fakesass.scss - << EOF
           \$govuk-assets-path: "/v-$(cat govuk_fe_version.txt)/";
-          @import "../../../node_modules/govuk-frontend/govuk/base";
+          @use "../../../node_modules/govuk-frontend/dist/govuk/index";
           EOF
 
           [[ $S3_COPIED_FROM != some-stack.zip ]] &&
