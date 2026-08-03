@@ -1,6 +1,13 @@
 name: "Send a Workflow Slack Notification"
 description: "Sends a notification to a Slack channel"
 inputs:
+  aws-role-arn:
+    description: "ARN of AWS role to assume when sending SNS messages"
+    required: false
+  aws-region:
+    description: "AWS region to use"
+    required: false
+    default: eu-west-2
   sns-topic-arn:
     description: "SNS Topic ARN to publish the notification to"
     required: true
@@ -19,6 +26,13 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Assume AWS Role
+      if: ${{ inputs.aws-role-arn != null }}
+      uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+      with:
+        role-to-assume: ${{ inputs.aws-role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+
     - name: Slack notification
       id: slack-notification
       shell: bash
