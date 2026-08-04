@@ -18,6 +18,8 @@ A SNS Topic arn is the only information required to be able to post a message to
 - `message-description`: The description or body of the message to send. If omitted, this defaults to the name of the workflow and a link to the workflow run
 - `status`: Optional status to include in the default message description (e.g., 'Succeeded', 'Failed'). If included, it is inserted into the message description, so the message becomes the name of the workflow, the status and a link to the workflow run. This only applies to the default message. If a custom message is provided in `message-description` the `status` is ignored, though status information can be included in that custom message
 - `status-icon`: Optional icon to include with the status in the default message title (e.g., '✅'). If included, it is prepended to the message title, so the title becomes the icon and the name of the workflow. If status icon is not provided, but a status of 'failed' (case insensitive) is provided, the status icon defaults to ❌. If status icon is not provided, but a status of 'succeeded' (case insensitive) is provided, the status icon defaults to ✅
+- `aws-role-arn`: Optional. The ARN for IAM role for GitHub to assume. Role must have enough permissions to publish to `sns-topic-arn`
+- `aws-region`: Optional. The AWS region to be used when authenticating with `aws-role-arn`. Defaults to `eu-west-2`
 
 ## Using actions from this repo in other repos
 
