@@ -16,7 +16,7 @@ jobs:
       DELETED_STACKS_FILE: deleted_stacks
     steps:
       - name: Pull repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install jp
         shell: bash
