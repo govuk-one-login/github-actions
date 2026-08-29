@@ -89,6 +89,17 @@ jobs:
         run: |
           [[ "${{ steps.parse-single-line-params-long-kvps.outputs.parsed-parameters }}" == "key=sky,value='blue' key=test,value='foo bar'" ]]
 
+      - name: Parse single-line parameters into JSON format
+        id: parse-single-line-params-json
+        uses: ./parse-parameters
+        with:
+          parameters: sky=blue | test="foo bar"
+          json-output: true
+
+      - name: Check single-line parameters parsed into JSON format
+        run: |
+          [[ '${{ steps.parse-single-line-params-json.outputs.parsed-parameters }}' == '{"sky":"blue","test":"foo bar"}' ]]
+
 
       - name: Parse single-line parameters into key-value pairs
         id: parse-single-line-params-kvps

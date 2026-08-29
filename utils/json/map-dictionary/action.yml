@@ -1,0 +1,49 @@
+name: "Map dictionary keys and values"
+description: "Map dictionary keys and values based on the provided mapping or regex"
+
+inputs:
+  dictionary:
+    description: "The dictionary containing the values to map. Must be valid JSON containing key-value pairs"
+    required: true
+  key-filter:
+    description: "Select entries whose keys match the provided regex; otherwise select all keys"
+    required: false
+  key-transform:
+    description: "Map keys by applying the provided regex. Must contain one capturing group"
+    required: false
+  value-map:
+    description: "The mapping of the current values to new values as key=value pairs delimited by '|' or newlines"
+    required: false
+
+outputs:
+  mapped-dictionary:
+    description: "The dictionary with filtered and mapped entries in JSON format"
+    value: ${{ steps.map.outputs.mapped }}
+
+runs:
+  using: composite
+  steps:
+    - name: Parse value map
+      id: value-map
+      if: ${{ inputs.value-map != null }}
+      shell: bash
+      env:
+        JSON_OUTPUT: true
+        PARAMETERS: ${{ inputs.value-map }}
+        PARSE: ${{ github.action_path }}/../../../scripts/parse-parameters.sh
+      run: |
+        map=$($PARSE)
+        echo "map=$map" >> "$GITHUB_OUTPUT"
+
+    - name: Map entries
+      id: map
+      shell: bash
+      env:
+        DICTIONARY: ${{ inputs.dictionary }}
+        KEY_FILTER: ${{ inputs.key-filter }}
+        KEY_TRANSFORM: ${{ inputs.key-transform }}
+        VALUE_MAP: ${{ steps.value-map.outputs.map }}
+        MAP: ${{ github.action_path }}/map-dictionary.sh
+      run: |
+        mapped=$($MAP)
+        echo "mapped=$mapped" >> "$GITHUB_OUTPUT"

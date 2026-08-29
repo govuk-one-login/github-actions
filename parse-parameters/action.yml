@@ -15,6 +15,10 @@ inputs:
     description: "Encode parsed parameters in the format key=<key>,value='<value>' (if not using an associative array)"
     required: false
     default: "false"
+  json-output:
+    description: "Encode parsed parameters as key-value pairs in JSON format"
+    required: false
+    default: "false"
 outputs:
   parsed-parameters:
     description: "A string representation of a regular or an associative array containing the parsed params"
@@ -29,6 +33,7 @@ runs:
         PARAMETERS: ${{ inputs.parameters }}
         LONG_FORMAT: ${{ inputs.long-format == 'true' }}
         ASSOCIATIVE_ARRAY: ${{ inputs.associative-array == 'true' }}
+        JSON_OUTPUT: ${{ inputs.json-output == 'true' }}
         PARSE: ${{ github.action_path }}/../scripts/parse-parameters.sh
       run: |
         parameters=$($PARSE)

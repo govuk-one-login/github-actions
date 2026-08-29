@@ -1,0 +1,95 @@
+name: Parse JSON array test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-parse-json-array-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v4
+
+
+      - name: Parse single-line array
+        id: single-line-array
+        uses: ./utils/json/parse-array
+        with:
+          array: one two three
+
+      - name: Check single-line array parsed
+        run: |
+          [[ '${{ steps.single-line-array.outputs.array-json }}' == '["one","two","three"]' ]]
+
+
+      - name: Parse single-line array with extra spaces
+        id: single-line-array-extra-spaces
+        uses: ./utils/json/parse-array
+        with:
+          array: one    two    three
+
+      - name: Check single-line array with extra spaces parsed
+        run: |
+          [[ '${{ steps.single-line-array-extra-spaces.outputs.array-json }}' == '["one","two","three"]' ]]
+
+
+      - name: Parse multi-line array
+        id: multi-line-array
+        uses: ./utils/json/parse-array
+        with:
+          array: |
+            one
+            two
+            three
+
+      - name: Check multi-line array parsed
+        run: |
+          [[ '${{ steps.multi-line-array.outputs.array-json }}' == '["one","two","three"]' ]]
+
+
+      - name: Parse multi-line array with extra newlines
+        id: multi-line-array-extra-newlines
+        uses: ./utils/json/parse-array
+        with:
+          array: |
+
+
+            one
+
+
+            two
+
+
+            three
+
+
+
+
+      - name: Check multi-line array with extra newlines parsed
+        run: |
+          [[ '${{ steps.multi-line-array-extra-newlines.outputs.array-json }}' == '["one","two","three"]' ]]
+
+
+      - name: Parse multi-line array with extra spaces and newlines
+        id: multi-line-array-extra-spaces-newlines
+        uses: ./utils/json/parse-array
+        with:
+          array: |
+
+            one
+
+
+            two
+
+            three
+
+
+
+      - name: Check multi-line array with extra spaces and newlines parsed
+        run: |
+          [[ '${{ steps.multi-line-array-extra-spaces-newlines.outputs.array-json }}' == '["one","two","three"]' ]]
