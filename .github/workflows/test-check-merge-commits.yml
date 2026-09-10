@@ -1,0 +1,24 @@
+name: Check merge commits test
+
+on: pull_request
+permissions:
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: test-check-merge-commits-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v7
+
+      - name: Run check merge commits test script
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ./.github/test-scripts/code-quality/check-merge-commits/test-check-merge-commits.sh
