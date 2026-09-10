@@ -1,0 +1,13 @@
+name: "Check for Merge Commits"
+description: "Fails if a Pull Request contains merge commits"
+
+runs:
+  using: composite
+  steps:
+    - name: Run Merge Commit Check Script
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.number }}
+      run: |
+        "${{ github.action_path }}/../../scripts/code-quality/check-merge-commits/check-merge-commits.sh"
