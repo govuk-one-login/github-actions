@@ -1,0 +1,160 @@
+name: Test Check Vulnerabilities
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  test-action:
+    name: Test action
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify package discovery
+        id: discovery
+        env:
+          REPOSITORY_ROOT: .github/stubs/workspace-fixture
+          PACKAGE_JSON_PATH: package.json
+        run: |
+          node .github/scripts/discover-package-files.mjs
+
+      - name: Assert discovered package files
+        env:
+          PACKAGE_FILES: ${{ steps.discovery.outputs.package-json-files }}
+        run: |
+          set -euo pipefail
+
+          echo "$PACKAGE_FILES" |
+            jq -e 'index("package.json") != null'
+
+          echo "$PACKAGE_FILES" |
+            jq -e 'index("integration-tests/package.json") != null'
+
+          echo "$PACKAGE_FILES" |
+            jq -e 'index("lambdas/foo/package.json") != null'
+
+          echo "$PACKAGE_FILES" |
+            jq -e 'index("lambdas/bar/package.json") != null'
+
+      - name: Assert discovered PR files
+        env:
+          PR_FILES: ${{ steps.discovery.outputs.pr-files }}
+        run: |
+          set -euo pipefail
+
+          grep -Fx "package.json" <<< "$PR_FILES"
+          grep -Fx "integration-tests/package.json" <<< "$PR_FILES"
+          grep -Fx "lambdas/foo/package.json" <<< "$PR_FILES"
+          grep -Fx "lambdas/bar/package.json" <<< "$PR_FILES"
+
+      - name: Test parse audit
+        id: parse
+        env:
+          AUDIT_FILE: .github/stubs/audit-fixture/audit.json
+          AUDIT_SUMMARY_FILE: audit-summary.json
+        run: |
+          node .github/scripts/parse-audit.mjs
+
+      - name: Assert audit summary
+        run: |
+          set -euo pipefail
+
+          jq -e '.safe | length == 1' audit-summary.json
+          jq -e '.safe[0].name == "lodash"' audit-summary.json
+          jq -e '.forceNonBreaking | length == 0' audit-summary.json
+          jq -e '.breaking | length == 0' audit-summary.json
+          jq -e '.unfixable | length == 1' audit-summary.json
+          jq -e '.unfixable[0].name == "old-package"' audit-summary.json
+
+      - name: Assert parse outputs
+        env:
+          SAFE_COUNT: ${{ steps.parse.outputs.safe_count }}
+          FORCE_COUNT: ${{ steps.parse.outputs.force_count }}
+          BREAKING_COUNT: ${{ steps.parse.outputs.breaking_count }}
+          UNFIXABLE_COUNT: ${{ steps.parse.outputs.unfixable_count }}
+          BUCKETS: ${{ steps.parse.outputs.buckets }}
+        run: |
+          set -euo pipefail
+
+          [[ "$SAFE_COUNT" == "1" ]]
+          [[ "$FORCE_COUNT" == "0" ]]
+          [[ "$BREAKING_COUNT" == "0" ]]
+          [[ "$UNFIXABLE_COUNT" == "1" ]]
+          [[ "$BUCKETS" == '["safe"]' ]]
+
+      - name: Prepare apply-fix fixture
+        run: |
+          set -euo pipefail
+
+          rm -rf "$RUNNER_TEMP/apply-fix-fixture"
+          mkdir -p "$RUNNER_TEMP/apply-fix-fixture"
+
+          cat > "$RUNNER_TEMP/apply-fix-fixture/package.json" << 'JSON'
+          {
+            "name": "apply-fix-fixture",
+            "version": "1.0.0",
+            "private": true
+          }
+          JSON
+
+          cat > "$RUNNER_TEMP/apply-fix-fixture/package-lock.json" << 'JSON'
+          {
+            "name": "apply-fix-fixture",
+            "version": "1.0.0",
+            "lockfileVersion": 3,
+            "requires": true,
+            "packages": {
+              "": {
+                "name": "apply-fix-fixture",
+                "version": "1.0.0"
+              }
+            }
+          }
+          JSON
+
+          cat > "$RUNNER_TEMP/apply-fix-fixture/audit-summary.json" << 'JSON'
+          {
+            "safe": [],
+            "forceNonBreaking": [],
+            "breaking": [],
+            "unfixable": []
+          }
+          JSON
+
+          cd "$RUNNER_TEMP/apply-fix-fixture"
+
+          git init
+          git config user.name "Auto Audit Test"
+          git config user.email "auto-audit-test@example.invalid"
+          git add package.json package-lock.json audit-summary.json
+          git commit -m "Create apply-fix fixture"
+
+      - name: Test apply-fix with dynamic PR files
+        id: apply
+        working-directory: ${{ runner.temp }}/apply-fix-fixture
+        env:
+          AUDIT_SUMMARY: audit-summary.json
+          PACKAGE_JSON_PATH: package.json
+          PR_FILES: |
+            package.json
+            package-lock.json
+        run: |
+          bash "$GITHUB_WORKSPACE/.github/scripts/apply-fix.sh" breaking
+
+      - name: Assert apply-fix produced no change
+        env:
+          CHANGED: ${{ steps.apply.outputs.changed }}
+        run: |
+          set -euo pipefail
+
+          [[ "$CHANGED" == "false" ]]
+          git -C "$RUNNER_TEMP/apply-fix-fixture" diff --exit-code

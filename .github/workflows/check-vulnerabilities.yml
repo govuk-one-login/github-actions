@@ -1,0 +1,201 @@
+name: Check npm vulnerabilities
+
+on:
+  workflow_call:
+    inputs:
+      package-json-path:
+        description: Path to the root package.json to audit
+        required: false
+        type: string
+        default: package.json
+
+      node-version:
+        description: Node.js version used by Auto Audit
+        required: false
+        type: string
+        default: "22"
+
+      github-actions-ref:
+        description: Ref used to check out the central scripts
+        required: true
+        type: string
+
+    secrets:
+      npm-audit-app-key:
+        description: Private key for the Auto Audit GitHub App
+        required: true
+
+permissions: {}
+jobs:
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    outputs:
+      buckets: ${{ steps.parse.outputs.buckets }}
+      base: ${{ steps.base.outputs.ref }}
+      package-json-files: ${{ steps.discover.outputs.package-json-files }}
+      package-directories: ${{ steps.discover.outputs.package-directories }}
+      pr-files: ${{ steps.discover.outputs.pr-files }}
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2.2.1
+        with:
+          app-id: ${{ vars.NPM_AUDIT_APP_ID }}
+          private-key: ${{ secrets.npm-audit-app-key }}
+
+      - name: Pull consumer repository
+        uses: actions/checkout@v4
+        with:
+          path: consumer
+
+      - name: Pull central GitHub Actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: govuk-one-login/github-actions
+          ref: ${{ inputs.github-actions-ref }}
+          path: central-actions
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: npm
+          cache-dependency-path: consumer/**/package-lock.json
+
+      - name: Resolve base branch
+        id: base
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
+        run: echo "ref=$BASE_REF" >> "$GITHUB_OUTPUT"
+
+      - name: Discover package files
+        id: discover
+        env:
+          REPOSITORY_ROOT: ${{ github.workspace }}/consumer
+          PACKAGE_JSON_PATH: ${{ inputs.package-json-path }}
+        run: |
+          node central-actions/.github/scripts/discover-package-files.mjs
+
+      - name: Debug discovered package files
+        run: |
+          echo "Package files:"
+          echo '${{ steps.discover.outputs.package-json-files }}'
+
+          echo "Package directories:"
+          echo '${{ steps.discover.outputs.package-directories }}'
+      - name: Run npm audit
+        working-directory: consumer
+        env:
+          PACKAGE_JSON_PATH: ${{ inputs.package-json-path }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          package_directory="$(dirname "$PACKAGE_JSON_PATH")"
+
+          echo "Running npm install and audit from: $package_directory"
+
+          cd "$package_directory"
+
+          npm ci --ignore-scripts
+          npm audit --json > "$RUNNER_TEMP/audit.json" || true
+          npm audit || true
+      - name: Bucket vulnerabilities
+        id: parse
+        env:
+          AUDIT_FILE: ${{ runner.temp }}/audit.json
+          AUDIT_SUMMARY_FILE: ${{ runner.temp }}/audit-summary.json
+        run: |
+          node central-actions/.github/scripts/parse-audit.mjs
+      - name: Archive audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          retention-days: 3
+          path: |
+            ${{ runner.temp }}/audit.json
+            ${{ runner.temp }}/audit-summary.json
+
+      - name: Sync unfixable-vulnerabilities issue
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          AUDIT_SUMMARY: ${{ runner.temp }}/audit-summary.json
+        run: |
+          bash central-actions/.github/scripts/sync-unfixable-issue.sh
+  fix:
+    name: PR (${{ matrix.bucket }})
+    needs: audit
+    if: needs.audit.outputs.buckets != '' && needs.audit.outputs.buckets != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        bucket: ${{ fromJSON(needs.audit.outputs.buckets) }}
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2.2.1
+        with:
+          app-id: ${{ vars.NPM_AUDIT_APP_ID }}
+          private-key: ${{ secrets.npm-audit-app-key }}
+
+       # The base branch, so the PR diff is only the dependency fix.
+      - name: Pull repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.audit.outputs.base }}
+
+      - name: Pull central GitHub Actions repository
+        uses: actions/checkout@v4
+        with:
+          repository: govuk-one-login/github-actions
+          ref: ${{ inputs.github-actions-ref }}
+          path: central-actions
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: 22
+
+      # Outside the workspace, so the audit JSON can never end up in the commit.
+      - name: Fetch audit report
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-audit-report
+          path: ${{ runner.temp }}/audit
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Apply fixes
+        id: apply
+        env:
+          BUCKET: ${{ matrix.bucket }}
+          AUDIT_SUMMARY: ${{ runner.temp }}/audit/audit-summary.json
+          PACKAGE_JSON_PATH: ${{ inputs.package-json-path }}
+          PR_FILES: ${{ needs.audit.outputs.pr-files }}
+        run: |
+          bash central-actions/.github/scripts/apply-fix.sh "$BUCKET"
+      - name: Raise signed PR
+        if: steps.apply.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          base: ${{ needs.audit.outputs.base }}
+          branch: ${{ steps.apply.outputs.branch }}
+          commit-message: ${{ steps.apply.outputs.commit_message }}
+          title: ${{ steps.apply.outputs.title }}
+          body-path: ${{ steps.apply.outputs.body_path }}
+          add-paths: ${{ needs.audit.outputs.pr-files }}
