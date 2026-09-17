@@ -61,7 +61,7 @@ runs:
   steps:
     - name: Pull repository
       if: ${{ inputs.pull-repository == 'true' }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Assume AWS Role
       if: ${{ inputs.aws-role-arn != null }}
