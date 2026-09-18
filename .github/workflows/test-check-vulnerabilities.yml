@@ -19,13 +19,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Verify package discovery
+      - name: Test auto-audit package discovery
         id: discovery
         env:
           REPOSITORY_ROOT: .github/stubs/workspace-fixture
           PACKAGE_JSON_PATH: package.json
         run: |
-          node .github/scripts/discover-package-files.mjs
+          node auto-audit/discover-package-files.mjs
 
       - name: Assert discovered package files
         env:
@@ -56,13 +56,13 @@ jobs:
           grep -Fx "lambdas/foo/package.json" <<< "$PR_FILES"
           grep -Fx "lambdas/bar/package.json" <<< "$PR_FILES"
 
-      - name: Test parse audit
+      - name: Test auto-audit audit parsing
         id: parse
         env:
           AUDIT_FILE: .github/stubs/audit-fixture/audit.json
           AUDIT_SUMMARY_FILE: audit-summary.json
         run: |
-          node .github/scripts/parse-audit.mjs
+          node auto-audit/parse-audit.mjs
 
       - name: Assert audit summary
         run: |
@@ -148,7 +148,7 @@ jobs:
             package.json
             package-lock.json
         run: |
-          bash "$GITHUB_WORKSPACE/.github/scripts/apply-fix.sh" breaking
+          bash "$GITHUB_WORKSPACE/auto-audit/apply-fix.sh" breaking
 
       - name: Assert apply-fix produced no change
         env:
