@@ -24,7 +24,7 @@ runs:
   steps:
     - name: Pull repository
       if: ${{ inputs.autobuild == 'true' }}
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Parse languages
       id: get-languages
