@@ -4,7 +4,6 @@ inputs:
   config_file:
     description: "Path to checkov config file"
     required: false
-    default: ".checkov.yaml"
   path:
     description: "Only run checks on files matching the specified path filter"
     required: false
