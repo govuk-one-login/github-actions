@@ -105,17 +105,23 @@ runs:
       run: |
         read -ra args < <(xargs <<< "$ARGS")
 
-        if [[ -n "$TASKS" ]]; then
-          # Split comma separated task list into array and trim whitespace
-          IFS=',' read -ra TASK_NAMES <<< "$TASKS"
-          for task in "${TASK_NAMES[@]}"; do
-            task="$(echo "$task" | xargs)"
-            args+=("$task")
-          done
+        run_pre_commit() {
+          pre-commit run --all-files --show-diff-on-failure --color=always "${args[@]}" "$@" ||
+            { git restore .
+              pre-commit run --all-files --show-diff-on-failure --color=never "${args[@]}" "$@" >> "$OUTPUT_FILE"
+              return 1; }
+        }
+
+        if [[ -z "$TASKS" ]]; then
+          run_pre_commit
+          exit
         fi
 
-        pre-commit run --all-files --show-diff-on-failure --color=always "${args[@]}" ||
-          (git restore . && pre-commit run --show-diff-on-failure --color=never "${args[@]}" >> "$OUTPUT_FILE")
+        rc=0
+        for task in ${TASKS//,/ }; do
+          run_pre_commit "$task" || rc=1
+        done
+        exit "$rc"
 
     - name: Report pre-commit result
       if: ${{ failure() && steps.run-pre-commit.outcome == 'failure' }}
