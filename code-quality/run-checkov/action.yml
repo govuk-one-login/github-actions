@@ -1,6 +1,10 @@
 name: "Run Checkov"
 description: "Run Checkov and report results to the job summary if there are failing checks"
 inputs:
+  config_file:
+    description: "Path to checkov config file"
+    required: false
+    default: ".checkov.yaml"
   path:
     description: "Only run checks on files matching the specified path filter"
     required: false
@@ -95,6 +99,18 @@ runs:
         read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
         checkov --quiet "${files[@]}" "${skip_checks[@]}" "${skip_frameworks[@]}" | tee "$OUTPUT_FILE"
 
+    - name: Run Checkov on a pull request
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'true' && steps.get-pr-files.outputs.files != null }}
+      with:
+        config_file: ${{ inputs.config_file }}
+        file: ${{ steps.get-pr-files.outputs.files }}
+        output_file_path: ${{ runner.temp }}/checkov.output
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
+
     - name: Run Checkov on a directory
       if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path != null }}
       shell: bash
@@ -108,6 +124,18 @@ runs:
         read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
         checkov --quiet -d "$DIR" "${skip_checks[@]}" "${skip_frameworks[@]}" | tee "$OUTPUT_FILE"
 
+    - name: Run Checkov on a directory
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path != null }}
+      with:
+        config_file: ${{ inputs.config_file }}
+        directory: ${{ inputs.path }}
+        output_file_path: ${{ runner.temp }}/checkov.output
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
+
     - name: Run Checkov on the repo
       if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path == null }}
       shell: bash
@@ -120,6 +148,24 @@ runs:
         read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
         checkov --quiet -d . "${skip_checks[@]}" "${skip_frameworks[@]}" | tee -a "$OUTPUT_FILE"
         [[ -d .github ]] && checkov --quiet -d .github "${skip_checks[@]}" "${skip_frameworks[@]}" | tee -a "$OUTPUT_FILE"
+
+    - name: Run Checkov on the repo
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path == null }}
+      with:
+        config_file: ${{ inputs.config_file }}
+        file: ${{ steps.get-pr-files.outputs.files }}
+        output_file_path: ${{ runner.temp }}/checkov.output
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v4
+      if: success() || failure()
+      with:
+        sarif_file: results.sarif
 
     - name: Report Checkov result
       if: ${{ failure() }}
