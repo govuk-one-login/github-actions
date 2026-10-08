@@ -30,11 +30,11 @@ inputs:
   args:
     description: "Extra arguments to pass to the pre-commit program"
     required: false
-  pre-commit-tasks:
-    description: "Comma separated list of tasks to run, or single task name"
+  hooks-to-run:
+    description: "Comma separated list of hooks to run, or single hook name"
     required: false
-  tasks-to-skip:
-    description: "Comma separated list of tasks to skip"
+  hooks-to-skip:
+    description: "Comma separated list of hooks to skip"
     required: false
 runs:
   using: composite
@@ -100,8 +100,8 @@ runs:
       env:
         ARGS: ${{ steps.check-merge-commit.outputs.files }} ${{ inputs.args }}
         OUTPUT_FILE: ${{ runner.temp }}/pre-commit.output
-        SKIP: ${{ inputs.tasks-to-skip }}
-        TASKS: ${{ inputs.pre-commit-tasks }}
+        SKIP: ${{ inputs.hooks-to-skip }}
+        HOOKS: ${{ inputs.hooks-to-run }}
       run: |
         read -ra args < <(xargs <<< "$ARGS")
 
@@ -112,14 +112,14 @@ runs:
               return 1; }
         }
 
-        if [[ -z "$TASKS" ]]; then
+        if [[ -z "$HOOKS" ]]; then
           run_pre_commit
           exit
         fi
 
         rc=0
-        for task in ${TASKS//,/ }; do
-          run_pre_commit "$task" || rc=1
+        for hook in ${HOOKS//,/ }; do
+          run_pre_commit "$hook" || rc=1
         done
         exit "$rc"
 
