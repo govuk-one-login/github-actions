@@ -31,7 +31,7 @@ inputs:
     description: "Extra arguments to pass to the pre-commit program"
     required: false
   hooks-to-run:
-    description: "Comma separated list of hooks to run, or single hook name"
+    description: "Comma separated list of hooks to run, or single hook name (runs all hooks if not specified)"
     required: false
   hooks-to-skip:
     description: "Comma separated list of hooks to skip"
@@ -106,9 +106,9 @@ runs:
         read -ra args < <(xargs <<< "$ARGS")
 
         run_pre_commit() {
-          pre-commit run --all-files --show-diff-on-failure --color=always "${args[@]}" "$@" ||
+          pre-commit run --show-diff-on-failure --color=always "${args[@]}" "$@" ||
             { git restore .
-              pre-commit run --all-files --show-diff-on-failure --color=never "${args[@]}" "$@" >> "$OUTPUT_FILE"
+              pre-commit run --show-diff-on-failure --color=never "${args[@]}" "$@" >> "$OUTPUT_FILE"
               return 1; }
         }
 
