@@ -75,7 +75,7 @@ runs:
       with:
         config_file: ${{ inputs.config-file }}
         file: ${{ steps.get-pr-files.outputs.files }}
-        output_file_path: ${{ runner.temp }}/checkov/pr_results.sarif
+        output_file_path: ${{ runner.temp }}/checkov
         output_format: cli,sarif
         quiet: true
         skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
@@ -87,7 +87,7 @@ runs:
       with:
         config_file: ${{ inputs.config-file }}
         directory: ${{ inputs.path }}
-        output_file_path: ${{ runner.temp }}/checkov/directory_results.sarif
+        output_file_path: ${{ runner.temp }}/checkov
         output_format: cli,sarif
         quiet: true
         skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
@@ -99,7 +99,7 @@ runs:
       with:
         config_file: ${{ inputs.config-file }}
         directory: .
-        output_file_path: ${{ runner.temp }}/checkov/repo_results.sarif
+        output_file_path: ${{ runner.temp }}/checkov
         output_format: cli,sarif
         quiet: true
         skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
@@ -116,6 +116,6 @@ runs:
       shell: bash
       env:
         REPORT: ${{ github.action_path }}/../../scripts/report-step-result/print-file.sh
-        FILE: ${{ runner.temp }}/checkov/formatted_results.txt
+        FILE: ${{ runner.temp }}/checkov/results_cli.txt
         CODE_BLOCK: "true"
       run: $REPORT >> "$GITHUB_STEP_SUMMARY"
