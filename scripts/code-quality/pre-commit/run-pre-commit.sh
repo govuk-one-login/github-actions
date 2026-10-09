@@ -5,6 +5,10 @@
 # in a list of hooks to run.
 set -euo pipefail
 
+# Optional env vars
+: "${HOOKS:=}"
+: "${ARGS:=}"
+
 read -ra args < <(xargs <<< "${ARGS}")
 IFS=', ' read -ra hooks <<< "${HOOKS}"
 
@@ -22,9 +26,8 @@ run-pre-commit() {
 if [[ ${#hooks[@]} -eq 0 ]]; then
   run_pre_commit || exit $?
   exit 0
-fi
 else
   for hook in "${hooks[@]}"; do
-  run_pre_commit "$hook" || exit $?
+    run_pre_commit "$hook" || exit $?
   done
 fi
