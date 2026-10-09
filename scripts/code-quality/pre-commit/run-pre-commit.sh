@@ -24,10 +24,10 @@ run-pre-commit() {
 
 # Run hooks one by one or all hooks if none are specified
 if [[ ${#hooks[@]} -eq 0 ]]; then
-  run_pre_commit || exit $?
+  run-pre-commit || exit $?
   exit 0
 else
   for hook in "${hooks[@]}"; do
-    run_pre_commit "$hook" || exit $?
+    run-pre-commit "$hook" || exit $?
   done
 fi
