@@ -39,6 +39,13 @@ jobs:
           skip-checks: CKV_SECRET_6
           pull-repository: false
 
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v7
+      - uses: ./code-quality/terraform-validate
+
   check-shell-scripts:
     name: Check shell scripts
     runs-on: ubuntu-latest
