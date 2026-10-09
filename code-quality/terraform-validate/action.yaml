@@ -23,21 +23,29 @@ runs:
       with:
         terraform_version: ${{ inputs.terraform_version }}
 
+    - name: Check Terraform directory exists
+      id: tf_dir
+      shell: bash
+      env:
+        TF_DIR: ${{ inputs.terraform_dir }}
+      run: echo "exists=$([[ -d "${TF_DIR}" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
     - name: Format
-      run: terraform fmt -check -recursive
+      if: steps.tf_dir.outputs.exists == 'true'
       shell: bash
       working-directory: ${{ inputs.terraform_dir }}
+      run: terraform fmt -check -recursive
 
     - name: Validate
-      if: ${{ inputs.recursive_validate == 'false' }}
+      if: ${{ inputs.recursive_validate == 'false' && steps.tf_dir.outputs.exists == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
       run: |
         terraform init -backend=false
         terraform validate
-      shell: bash
-      working-directory: ${{ inputs.terraform_dir }}
 
     - name: Recursive Validate
-      if: ${{ inputs.recursive_validate == 'true' }}
+      if: ${{ inputs.recursive_validate == 'true' && steps.tf_dir.outputs.exists == 'true' }}
       run: |
         ${{ github.action_path }}/../../scripts/tf-validate-recursive.sh ${{ inputs.terraform_dir }}
       shell: bash
