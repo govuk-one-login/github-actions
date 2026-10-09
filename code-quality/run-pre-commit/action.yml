@@ -102,26 +102,8 @@ runs:
         OUTPUT_FILE: ${{ runner.temp }}/pre-commit.output
         SKIP: ${{ inputs.hooks-to-skip }}
         HOOKS: ${{ inputs.hooks-to-run }}
-      run: |
-        read -ra args < <(xargs <<< "$ARGS")
-
-        run_pre_commit() {
-          pre-commit run --show-diff-on-failure --color=always "${args[@]}" "$@" ||
-            { git restore .
-              pre-commit run --show-diff-on-failure --color=never "${args[@]}" "$@" >> "$OUTPUT_FILE"
-              return 1; }
-        }
-
-        if [[ -z "$HOOKS" ]]; then
-          run_pre_commit
-          exit
-        fi
-
-        rc=0
-        for hook in ${HOOKS//,/ }; do
-          run_pre_commit "$hook" || rc=1
-        done
-        exit "$rc"
+        RUN_PRE_COMMIT: ${{ github.action_path }}/../../scripts/code-quality/pre-commit/run-pre-commit.sh
+      run: $RUN_PRE_COMMIT
 
     - name: Report pre-commit result
       if: ${{ failure() && steps.run-pre-commit.outcome == 'failure' }}
