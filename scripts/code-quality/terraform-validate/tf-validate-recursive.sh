@@ -5,9 +5,8 @@ ROOT_DIR="$1"
 export TF_PLUGIN_CACHE_DIR="/tmp/terraform-plugin-cache"
 mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
-dirs=$(find "${ROOT_DIR}" -type f -name '*.tf' -not -path '*/.terraform/*' -not -path '*/modules/*' \
-  | xargs -n1 dirname \
-  | sort -u)
+dirs=$(find "${ROOT_DIR}" -type f -name '*.tf' -not -path '*/.terraform/*' \
+  -not -path '*/modules/*' -printf '%h\n' | sort -u)
 
 if [ -z "${dirs}" ]; then
   echo "No Terraform directories found"
