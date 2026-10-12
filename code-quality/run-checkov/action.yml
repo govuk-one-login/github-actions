@@ -1,23 +1,26 @@
 name: "Run Checkov"
 description: "Run Checkov and report results to the job summary if there are failing checks"
 inputs:
+  config-file:
+    description: "Path to a Checkov configuration file"
+    required: false
   path:
     description: "Only run checks on files matching the specified path filter"
     required: false
+  pull-repository:
+    description: "Pull the repository before running Checkov"
+    required: false
+    default: "true"
   skip-checks:
     description: "Checks to skip. Multiple values separated by commas, spaces or newlines"
     required: false
   skip-frameworks:
     description: "Frameworks to skip. Multiple values separated by commas, spaces or newlines"
     required: false
-  pull-repository:
-    description: "Pull the repository before running pre-commit"
+  upload-sarif-file:
+    description: "Whether to upload a sarif file (requires additional workflow permissions)"
     required: false
-    default: "true"
-  python-version:
-    description: "Python version to set up. The system version is used if not specified."
-    required: false
-    default: "3.11.6"
+    default: "false"
 runs:
   using: composite
   steps:
@@ -38,17 +41,6 @@ runs:
       with:
         fetch-depth: ${{ steps.check-merge-commit.outputs.fetch-depth }}
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: ${{ inputs.python-version }}
-        cache-dependency-path: ./.github/workflows
-        cache: pip
-
-    - name: Install Checkov
-      run: echo "::group::pip output" && pip install checkov && echo "::endgroup::"
-      shell: bash
-
     - name: Parse options
       id: checkov-options
       shell: bash
@@ -57,11 +49,11 @@ runs:
         SKIP_FRAMEWORKS: ${{ inputs.skip-frameworks }}
       run: |
         if [[ -n $SKIP_CHECKS ]]; then
-          echo "skip-checks=--skip-check $(xargs <<< "$SKIP_CHECKS" | tr ' ' ',')" >> "$GITHUB_OUTPUT"
+          echo "skip-checks=$(xargs <<< "$SKIP_CHECKS" | tr ' ' ',')" >> "$GITHUB_OUTPUT"
         fi
 
         if [[ -n $SKIP_FRAMEWORKS ]]; then
-          echo "skip-frameworks=--skip-framework $(xargs <<< "$SKIP_FRAMEWORKS")" >> "$GITHUB_OUTPUT"
+          echo "skip-frameworks=$(xargs <<< "$SKIP_FRAMEWORKS" | tr ' ' ',')" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Get pull request files
@@ -78,54 +70,56 @@ runs:
             case $? in 1) echo "No files to check" && exit 0 ;; *) exit $? ;; esac
         fi
 
-        echo "files=$(xargs <<< "$files")" >> "$GITHUB_OUTPUT"
+        # The official action expects a comma-separated list for the `file` input
+        echo "files=$(xargs <<< "$files" | tr ' ' ',')" >> "$GITHUB_OUTPUT"
 
     - name: Run Checkov on a pull request
-      if: ${{ steps.check-merge-commit.outputs.merging == 'true' && steps.get-pr-files.outputs.files != null }}
-      shell: bash
-      env:
-        FILES: ${{ steps.get-pr-files.outputs.files }}
-        SKIP_CHECKS: ${{ steps.checkov-options.outputs.skip-checks }}
-        SKIP_FRAMEWORKS: ${{ steps.checkov-options.outputs.skip-frameworks }}
-        OUTPUT_FILE: ${{ runner.temp }}/checkov.output
-      run: |
-        read -ra files <<< "$FILES"
-        read -ra files <<< "${files[@]/#/-f }"
-        read -ra skip_checks <<< "$SKIP_CHECKS"
-        read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
-        checkov --quiet "${files[@]}" "${skip_checks[@]}" "${skip_frameworks[@]}" | tee "$OUTPUT_FILE"
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'true' && steps.get-pr-files.outputs.files != '' }}
+      with:
+        config_file: ${{ inputs.config-file }}
+        file: ${{ steps.get-pr-files.outputs.files }}
+        output_file_path: ${{ runner.temp }}/checkov
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
 
     - name: Run Checkov on a directory
-      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path != null }}
-      shell: bash
-      env:
-        DIR: ${{ inputs.path }}
-        SKIP_CHECKS: ${{ steps.checkov-options.outputs.skip-checks }}
-        SKIP_FRAMEWORKS: ${{ steps.checkov-options.outputs.skip-frameworks }}
-        OUTPUT_FILE: ${{ runner.temp }}/checkov.output
-      run: |
-        read -ra skip_checks <<< "$SKIP_CHECKS"
-        read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
-        checkov --quiet -d "$DIR" "${skip_checks[@]}" "${skip_frameworks[@]}" | tee "$OUTPUT_FILE"
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path != '' }}
+      with:
+        config_file: ${{ inputs.config-file }}
+        directory: ${{ inputs.path }}
+        output_file_path: ${{ runner.temp }}/checkov
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
 
     - name: Run Checkov on the repo
-      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path == null }}
-      shell: bash
-      env:
-        SKIP_CHECKS: ${{ steps.checkov-options.outputs.skip-checks }}
-        SKIP_FRAMEWORKS: ${{ steps.checkov-options.outputs.skip-frameworks }}
-        OUTPUT_FILE: ${{ runner.temp }}/checkov.output
-      run: |
-        read -ra skip_checks <<< "$SKIP_CHECKS"
-        read -ra skip_frameworks <<< "$SKIP_FRAMEWORKS"
-        checkov --quiet -d . "${skip_checks[@]}" "${skip_frameworks[@]}" | tee -a "$OUTPUT_FILE"
-        [[ -d .github ]] && checkov --quiet -d .github "${skip_checks[@]}" "${skip_frameworks[@]}" | tee -a "$OUTPUT_FILE"
+      uses: bridgecrewio/checkov-action@v12
+      if: ${{ steps.check-merge-commit.outputs.merging == 'false' && inputs.path == '' }}
+      with:
+        config_file: ${{ inputs.config-file }}
+        directory: .
+        output_file_path: ${{ runner.temp }}/checkov
+        output_format: cli,sarif
+        quiet: true
+        skip_check: ${{ steps.checkov-options.outputs.skip-checks }}
+        skip_framework: ${{ steps.checkov-options.outputs.skip-frameworks }}
+
+    - name: Upload SARIF file
+      uses: github/codeql-action/upload-sarif@v4
+      if: ${{ (success() || failure()) && inputs.upload-sarif-file == 'true' }}
+      with:
+        sarif_file: ${{ runner.temp }}/checkov
 
     - name: Report Checkov result
       if: ${{ failure() }}
       shell: bash
       env:
         REPORT: ${{ github.action_path }}/../../scripts/report-step-result/print-file.sh
-        FILE: ${{ runner.temp }}/checkov.output
+        FILE: ${{ runner.temp }}/checkov/results_cli.txt
         CODE_BLOCK: "true"
       run: $REPORT >> "$GITHUB_STEP_SUMMARY"

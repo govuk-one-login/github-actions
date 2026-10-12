@@ -18,7 +18,6 @@ jobs:
       - name: Run pre-commit
         uses: ./code-quality/run-pre-commit
         with:
-          python-version: '3.13'
           install-dependencies: true
           pull-repository: false
           all-files: true
