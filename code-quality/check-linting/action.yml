@@ -41,7 +41,7 @@ runs:
 
     - name: Set up Node
       if: ${{ inputs.run-prettier == 'true' || inputs.run-eslint == 'true' }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         cache: npm
 
