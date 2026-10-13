@@ -82,7 +82,7 @@ runs:
       uses: actions/checkout@v7
 
     - name: Cache SAM dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         key: ${{ inputs.cache-key || format('sam-{0}-{1}-{2}', inputs.cache-name, runner.os, hashFiles(inputs.template || '**/template.y*ml')) }}
         restore-keys: ${{ inputs.cache-restore-keys || format('sam-{0}-{1}-', inputs.cache-name, runner.os) }}
