@@ -1,0 +1,40 @@
+name: "tflint"
+description: "Run Terraform linting"
+inputs:
+  tflint_version:
+    description: "TFLint version to use"
+    required: false
+    default: "v0.50.3"
+    type: string
+  terraform_dir:
+    description: "Terraform directory to validate"
+    required: false
+    default: "terraform"
+    type: string
+  tflint_config:
+    description: "Path to TFLint config file"
+    required: false
+    default: ".tflint.hcl"
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - uses: terraform-linters/setup-tflint@v6
+      name: Setup TFLint
+      with:
+        tflint_version: ${{ inputs.tflint_version }}
+
+    - name: Show version
+      run: tflint --version
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Init TFLint
+      run: tflint --init -c "${{ github.workspace }}/${{ inputs.tflint_config }}"
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Run TFLint
+      run: tflint -c "${{ github.workspace }}/${{ inputs.tflint_config }}" -f compact
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}

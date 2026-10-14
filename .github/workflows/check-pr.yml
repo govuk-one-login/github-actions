@@ -43,7 +43,16 @@ jobs:
     steps:
       - name: Pull repository
         uses: actions/checkout@v7
-      - uses: ./code-quality/terraform-validate
+      - name: Run Terraform validate
+        uses: ./code-quality/terraform-validate
+
+  tf-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v7
+      - name: Run TFLint
+        uses: ./code-quality/tflint
 
   check-shell-scripts:
     name: Check shell scripts
