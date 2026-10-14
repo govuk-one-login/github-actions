@@ -17,7 +17,7 @@ tpl_count=0
 failed_count=0
 
 
-for tpl_file in $(find ${POLICY_DIR} -name "*.json*" -o -name "*.tpl"); do
+for tpl_file in $(find "${POLICY_DIR}" -name "*.json*" -o -name "*.tpl"); do
     if [[ -f "$tpl_file" ]]; then
         # Create wrapper filename in generated directory
         base_name=$(basename "$tpl_file" .tpl)
