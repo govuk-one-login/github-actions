@@ -46,7 +46,7 @@ jobs:
       - name: Run Terraform validate
         uses: ./code-quality/terraform-validate
 
-  tf-lint:
+  tflint:
     runs-on: ubuntu-latest
     steps:
       - name: Pull repository
