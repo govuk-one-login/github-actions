@@ -31,6 +31,9 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Wrap IAM policies
+        uses: ./utils/wrap-iam-policies
+
       - name: Run Checkov
         uses: ./code-quality/run-checkov
         with:
@@ -43,6 +46,7 @@ jobs:
     steps:
       - name: Pull repository
         uses: actions/checkout@v7
+
       - name: Run Terraform validate
         uses: ./code-quality/terraform-validate
 
@@ -51,6 +55,7 @@ jobs:
     steps:
       - name: Pull repository
         uses: actions/checkout@v7
+
       - name: Run TFLint
         uses: ./code-quality/tflint
 
