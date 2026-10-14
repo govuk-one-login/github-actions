@@ -2,7 +2,8 @@
 
 # Generate CloudFormation wrappers for .tpl policy files
 # Usage: ./scripts/generate-policy-wrappers.sh <policy_directory>
-POLICY_DIR=$1;shift;
+POLICY_DIR=$1
+shift
 
 GENERATED_DIR="${POLICY_DIR}/generated_policies"
 
@@ -16,18 +17,17 @@ echo "Generating CloudFormation wrappers for policy files..."
 tpl_count=0
 failed_count=0
 
-
 while IFS= read -r -d '' tpl_file; do
-    if [[ -f "$tpl_file" ]]; then
-        # Create wrapper filename in generated directory
-        base_name=$(basename "$tpl_file" .tpl)
-        base_name=$(basename "$base_name" .json)
-        wrapper_file="$GENERATED_DIR/${base_name}-wrapper.json"
+  if [[ -f $tpl_file ]]; then
+    # Create wrapper filename in generated directory
+    base_name=$(basename "$tpl_file" .tpl)
+    base_name=$(basename "$base_name" .json)
+    wrapper_file="$GENERATED_DIR/${base_name}-wrapper.json"
 
-        echo "Wrapping: $tpl_file -> $wrapper_file"
+    echo "Wrapping: $tpl_file -> $wrapper_file"
 
-        # Create CloudFormation wrapper with the policy content using Python
-        if python3 -c "
+    # Create CloudFormation wrapper with the policy content using Python
+    if python3 -c "
 import json
 import sys
 try:
@@ -51,18 +51,18 @@ try:
 except Exception as e:
     print(f'Error processing $tpl_file: {e}', file=sys.stderr)
     sys.exit(1)
-" 2>/dev/null; then
-            ((tpl_count++))
-        else
-            echo "Failed to process $tpl_file"
-            ((failed_count++))
-        fi
+" 2> /dev/null; then
+      ((tpl_count++))
+    else
+      echo "Failed to process $tpl_file"
+      ((failed_count++))
     fi
+  fi
 
 done < <(find "${POLICY_DIR}" -type f \( -name "*.json*" -o -name "*.tpl" \) -print0)
 
 echo "Generated $tpl_count CloudFormation wrapper files in $GENERATED_DIR"
 if [[ $failed_count -gt 0 ]]; then
-    echo "Failed to process $failed_count files"
-    exit 1
+  echo "Failed to process $failed_count files"
+  exit 1
 fi
