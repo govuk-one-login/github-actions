@@ -17,7 +17,7 @@ tpl_count=0
 failed_count=0
 
 
-for tpl_file in $(find "${POLICY_DIR}" -name "*.json*" -o -name "*.tpl"); do
+while IFS= read -r -d '' tpl_file; do
     if [[ -f "$tpl_file" ]]; then
         # Create wrapper filename in generated directory
         base_name=$(basename "$tpl_file" .tpl)
@@ -58,7 +58,8 @@ except Exception as e:
             ((failed_count++))
         fi
     fi
-done
+
+done < <(find "${POLICY_DIR}" -type f \( -name "*.json*" -o -name "*.tpl" \) -print0)
 
 echo "Generated $tpl_count CloudFormation wrapper files in $GENERATED_DIR"
 if [[ $failed_count -gt 0 ]]; then
