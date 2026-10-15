@@ -33,6 +33,8 @@ jobs:
 
       - name: Wrap IAM policies
         uses: ./utils/wrap-iam-policies
+        with:
+          policy-directory: ${{ github.action_path }}../../scripts/utils/wrap-iam-policies
 
       - name: Run Checkov
         uses: ./code-quality/run-checkov
