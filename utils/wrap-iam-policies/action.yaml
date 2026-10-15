@@ -1,11 +1,11 @@
 name: "Wrap IAM Policies"
 description: "Generate CloudFormation wrappers for IAM policy template files"
 inputs:
-  policy_directory:
+  policy-directory:
     description: "Directory containing policy files to wrap"
     required: false
     default: "terraform/policies"
-  working_directory:
+  working-directory:
     description: "Working directory for action"
     required: false
     default: "."
@@ -13,16 +13,16 @@ runs:
   using: "composite"
   steps:
     - name: Check policies directory exists
-      id: policy_dir
+      id: policy-dir
       shell: bash
       env:
-        POLICY_DIR: ${{ inputs.policy_directory }}
+        POLICY_DIR: ${{ inputs.policy-directory }}
       run: echo "exists=$([[ -d "${POLICY_DIR}" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
 
     - name: Generate Policy Wrappers
-      if: steps.policy_dir.outputs.exists == 'true'
+      if: steps.policy-dir.outputs.exists == 'true'
       shell: bash
-      working-directory: ${{ inputs.working_directory }}
+      working-directory: ${{ inputs.working-directory }}
       env:
-        POLICY_DIR: ${{ inputs.policy_directory }}
+        POLICY_DIR: ${{ inputs.policy-directory }}
       run: bash "${{ github.action_path }}/../../scripts/utils/generate-policy-wrappers.sh" "${POLICY_DIR}"
