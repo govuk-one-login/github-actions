@@ -25,4 +25,4 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       env:
         POLICY_DIR: ${{ inputs.policy-directory }}
-      run: bash "${{ github.action_path }}/../../scripts/utils/generate-policy-wrappers.sh" "${POLICY_DIR}"
+      run: bash "${{ github.action_path }}/../../scripts/utils/wrap-iam-policies/generate-policy-wrappers.sh" "${POLICY_DIR}"
