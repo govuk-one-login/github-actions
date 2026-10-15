@@ -16,11 +16,13 @@ runs:
       id: policy_dir
       shell: bash
       env:
-        POLICY_DIR: ${{ inputs.policy_dir }}
+        POLICY_DIR: ${{ inputs.policy_directory }}
       run: echo "exists=$([[ -d "${POLICY_DIR}" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
 
     - name: Generate Policy Wrappers
       if: steps.policy_dir.outputs.exists == 'true'
-      run: bash ${{ github.action_path }}/scripts/utils/generate-policy-wrappers.sh "${{ inputs.policy_directory }}"
       shell: bash
       working-directory: ${{ inputs.working_directory }}
+      env:
+        POLICY_DIR: ${{ inputs.policy_directory }}
+      run: bash "${{ github.action_path }}/scripts/utils/generate-policy-wrappers.sh" "${POLICY_DIR}"
