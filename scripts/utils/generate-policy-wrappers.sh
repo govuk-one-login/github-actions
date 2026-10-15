@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate CloudFormation wrappers for .tpl policy files
-# Usage: ./scripts/generate-policy-wrappers.sh <policy_directory>
+# Usage: ./scripts/utils/generate-policy-wrappers.sh <policy_directory>
 POLICY_DIR=$1
 shift
 
