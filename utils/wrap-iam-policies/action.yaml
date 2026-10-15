@@ -12,7 +12,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Check Terraform directory exists
+    - name: Check policies directory exists
       id: policy_dir
       shell: bash
       env:
