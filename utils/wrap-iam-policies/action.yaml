@@ -16,7 +16,7 @@ runs:
       id: policy_dir
       shell: bash
       env:
-        POLICY_DIR: ${{ inputs.terraform_dir }}
+        POLICY_DIR: ${{ inputs.policy_dir }}
       run: echo "exists=$([[ -d "${POLICY_DIR}" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
 
     - name: Generate Policy Wrappers
