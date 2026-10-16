@@ -1,0 +1,8 @@
+{
+  "name": "workspace-fixture",
+  "private": true,
+  "workspaces": [
+    "integration-tests",
+    "lambdas/*"
+  ]
+}

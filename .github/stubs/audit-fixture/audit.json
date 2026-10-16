@@ -1,0 +1,21 @@
+{
+  "vulnerabilities": {
+    "lodash": {
+      "severity": "high",
+      "range": "<4.17.21",
+      "fixAvailable": true
+    },
+    "old-package": {
+      "severity": "critical",
+      "range": "<1.0.0",
+      "fixAvailable": false,
+      "via": [
+        {
+          "title": "Critical vulnerability",
+          "url": "https://example.com",
+          "severity": "critical"
+        }
+      ]
+    }
+  }
+}
