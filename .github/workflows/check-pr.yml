@@ -31,6 +31,11 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: Wrap IAM policies
+        uses: ./utils/wrap-iam-policies
+        with:
+          policy-directory: scripts/utils/wrap-iam-policies
+
       - name: Run Checkov
         uses: ./code-quality/run-checkov
         with:
@@ -43,7 +48,18 @@ jobs:
     steps:
       - name: Pull repository
         uses: actions/checkout@v7
-      - uses: ./code-quality/terraform-validate
+
+      - name: Run Terraform validate
+        uses: ./code-quality/terraform-validate
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v7
+
+      - name: Run TFLint
+        uses: ./code-quality/tflint
 
   check-shell-scripts:
     name: Check shell scripts

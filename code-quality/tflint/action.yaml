@@ -1,0 +1,51 @@
+name: "TFLint"
+description: "Run Terraform linting"
+inputs:
+  tflint_version:
+    description: "TFLint version to use"
+    required: false
+    default: "v0.50.3"
+    type: string
+  terraform_dir:
+    description: "Terraform directory to validate"
+    required: false
+    default: "terraform"
+    type: string
+  tflint_config:
+    description: "Path to TFLint config file"
+    required: false
+    default: ".tflint.hcl"
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Check Terraform directory exists
+      id: tf_dir
+      shell: bash
+      env:
+        TF_DIR: ${{ inputs.terraform_dir }}
+      run: echo "exists=$([[ -d "${TF_DIR}" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
+    - uses: terraform-linters/setup-tflint@v6
+      if: steps.tf_dir.outputs.exists == 'true'
+      name: Setup TFLint
+      with:
+        tflint_version: ${{ inputs.tflint_version }}
+
+    - name: Show version
+      if: steps.tf_dir.outputs.exists == 'true'
+      run: tflint --version
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Init TFLint
+      if: steps.tf_dir.outputs.exists == 'true'
+      run: tflint --init -c "${{ github.workspace }}/${{ inputs.tflint_config }}"
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
+
+    - name: Run TFLint
+      if: steps.tf_dir.outputs.exists == 'true'
+      run: tflint -c "${{ github.workspace }}/${{ inputs.tflint_config }}" -f compact
+      shell: bash
+      working-directory: ${{ inputs.terraform_dir }}
