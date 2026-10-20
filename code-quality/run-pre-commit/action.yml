@@ -88,7 +88,7 @@ runs:
       shell: bash
 
     - name: Cache pre-commit dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca #v6
       with:
         key: pre-commit-${{ runner.os }}-${{ hashFiles('**/.pre-commit-config.yaml') }}
         restore-keys: pre-commit-${{ runner.os }}-
