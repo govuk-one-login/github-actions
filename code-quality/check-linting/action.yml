@@ -47,7 +47,7 @@ runs:
 
     - name: Set up Python
       if: ${{ inputs.run-cfn-lint == 'true' }}
-      uses: actions/setup-python@ec52d0af729a7c50ced4261d17a07916f43f5b8e #v7.0.0
+      uses: actions/setup-python@ec52d0af729a7c50ced4261d17a07916f43f5b8e # v7.0.0
       with:
         python-version: ${{ inputs.python-version }}
         cache-dependency-path: ./.github/workflows
