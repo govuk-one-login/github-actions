@@ -41,13 +41,13 @@ runs:
 
     - name: Set up Node
       if: ${{ inputs.run-prettier == 'true' || inputs.run-eslint == 'true' }}
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         cache: npm
 
     - name: Set up Python
       if: ${{ inputs.run-cfn-lint == 'true' }}
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@ec52d0af729a7c50ced4261d17a07916f43f5b8e # v7.0.0
       with:
         python-version: ${{ inputs.python-version }}
         cache-dependency-path: ./.github/workflows
