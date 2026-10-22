@@ -46,6 +46,7 @@ runs:
 
     - name: Recursive Validate
       if: ${{ inputs.recursive_validate == 'true' && steps.tf_dir.outputs.exists == 'true' }}
-      run: |
-        ${{ github.action_path }}/tf-validate-recursive.sh ${{ inputs.terraform_dir }}
       shell: bash
+      env:
+        TF_DIR: ${{ inputs.terraform_dir }}
+      run: bash "${{ github.action_path }}/tf-validate-recursive.sh" "$TF_DIR"
