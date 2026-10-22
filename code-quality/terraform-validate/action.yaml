@@ -15,7 +15,7 @@ inputs:
     description: "Validate all Terraform subdirectories"
     required: false
     default: "false"
-  github-token:
+  github_token:
     description: "GitHub token with read access to private Terraform module repositories"
     required: false
 runs:
@@ -58,5 +58,5 @@ runs:
       shell: bash
       env:
         TF_DIR: ${{ inputs.terraform_dir }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       run: bash "${{ github.action_path }}/tf-validate-recursive.sh" "$TF_DIR"
