@@ -18,7 +18,12 @@ echo "${dirs}" | while read -r dir; do
   (
     cd "${dir}"
     echo "Initalising Terraform"
-    terraform init -backend=false
+    GIT_CONFIG_COUNT=2 \
+      GIT_CONFIG_KEY_0=url.https://github.com/.insteadOf \
+      GIT_CONFIG_VALUE_0=git@github.com: \
+      GIT_CONFIG_KEY_1=url.https://github.com/.insteadOf \
+      GIT_CONFIG_VALUE_1=ssh://git@github.com/ \
+      terraform init -backend=false
     echo "Validating Terraform"
     terraform validate
   )

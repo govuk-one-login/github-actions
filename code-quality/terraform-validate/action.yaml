@@ -40,6 +40,12 @@ runs:
       if: ${{ inputs.recursive_validate == 'false' && steps.tf_dir.outputs.exists == 'true' }}
       shell: bash
       working-directory: ${{ inputs.terraform_dir }}
+      env:
+        GIT_CONFIG_COUNT: 2
+        GIT_CONFIG_KEY_0: url.https://github.com/.insteadOf
+        GIT_CONFIG_VALUE_0: git@github.com:
+        GIT_CONFIG_KEY_1: url.https://github.com/.insteadOf
+        GIT_CONFIG_VALUE_1: ssh://git@github.com/
       run: |
         terraform init -backend=false
         terraform validate
