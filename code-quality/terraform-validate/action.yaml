@@ -15,6 +15,9 @@ inputs:
     description: "Validate all Terraform subdirectories"
     required: false
     default: "false"
+  github_token:
+    description: "GitHub token with read access to private Terraform module repositories"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -40,12 +43,20 @@ runs:
       if: ${{ inputs.recursive_validate == 'false' && steps.tf_dir.outputs.exists == 'true' }}
       shell: bash
       working-directory: ${{ inputs.terraform_dir }}
+      env:
+        GIT_CONFIG_COUNT: 2
+        GIT_CONFIG_KEY_0: url.https://github.com/.insteadOf
+        GIT_CONFIG_VALUE_0: "git@github.com:"
+        GIT_CONFIG_KEY_1: url.https://github.com/.insteadOf
+        GIT_CONFIG_VALUE_1: ssh://git@github.com/
       run: |
         terraform init -backend=false
         terraform validate
 
     - name: Recursive Validate
       if: ${{ inputs.recursive_validate == 'true' && steps.tf_dir.outputs.exists == 'true' }}
-      run: |
-        ${{ github.action_path }}/../../scripts/tf-validate-recursive.sh ${{ inputs.terraform_dir }}
       shell: bash
+      env:
+        TF_DIR: ${{ inputs.terraform_dir }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: bash "${{ github.action_path }}/tf-validate-recursive.sh" "$TF_DIR"
