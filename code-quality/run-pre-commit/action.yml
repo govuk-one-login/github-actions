@@ -27,6 +27,10 @@ inputs:
     description: "Python version to set up. The system version is used if not specified."
     required: false
     default: "3.13"
+  working-directory:
+    description: "Directory containing package.json / lockfile"
+    required: false
+    default: "."
   args:
     description: "Extra arguments to pass to the pre-commit program"
     required: false
@@ -74,9 +78,11 @@ runs:
         node-version: ${{ inputs.node-version }}
         node-version-file: ${{ inputs.node-version-file }}
         cache: ${{ inputs.package-manager }}
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'yarn' && 'yarn.lock' || 'package-lock.json'}}
 
     - name: Install dependencies
       if: ${{ inputs.install-dependencies == 'true' }}
+      working-directory: ${{ inputs.working-directory }}
       shell: bash
       env:
         PKG_MGR: ${{ inputs.package-manager }}
