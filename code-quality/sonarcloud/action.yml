@@ -57,7 +57,7 @@ runs:
         github-token: ${{ (steps.coverage.outputs.run-id || github.run_id) != github.run_id && inputs.github-token || null }}
 
     - name: Scan
-      uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8.4.1
+      uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8.5.0
       with:
         args: ${{ inputs.args }}
         projectBaseDir: ${{ inputs.projectBaseDir }}
