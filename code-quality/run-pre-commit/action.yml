@@ -10,10 +10,13 @@ inputs:
     required: false
     default: "false"
   node-version:
-    description: "Node version to use. Takes precedence over node-version-file if both are specified. If neither are specificied, the system version is used."
+    description: "Node version to use. Takes precedence over node-version-file if both are specified. If neither are specified, the system version is used."
     required: false
   node-version-file:
     description: "File containing the Node version to use, for example .nvmrc, .node-version, package.json. Ignored if node-version is also specified. If neither are specified, the system version is used."
+    required: false
+  npm-version:
+    description: "NPM version to use. If unspecified, the system version is used."
     required: false
   package-manager:
     description: "The package manager to use to install dependencies - npm or yarn"
@@ -27,6 +30,9 @@ inputs:
     description: "Python version to set up. The system version is used if not specified."
     required: false
     default: "3.13"
+  run-build:
+    description: "Run the 'npm run build' command before pre-commit"
+    required: false
   working-directory:
     description: "Directory containing package.json / lockfile"
     required: false
@@ -80,6 +86,11 @@ runs:
         cache: ${{ inputs.package-manager }}
         cache-dependency-path: ${{ inputs.working-directory }}/${{ inputs.package-manager == 'yarn' && 'yarn.lock' || 'package-lock.json'}}
 
+    - name: Install npm
+      if: ${{ inputs.npm-version != '' }}
+      shell: bash
+      run: npm install -g npm@${{ inputs.npm-version }}
+
     - name: Install dependencies
       if: ${{ inputs.install-dependencies == 'true' }}
       working-directory: ${{ inputs.working-directory }}
@@ -88,6 +99,11 @@ runs:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
         [[ $PKG_MGR == npm ]] && npm ci || yarn install --frozen-lockfile
+
+    - name: Run npm build
+      if: ${{ inputs.run-build == 'true' }}
+      shell: bash
+      run: npm run build
 
     - name: Install pre-commit
       run: echo "::group::pip output" && pip install pre-commit && echo "::endgroup::"
