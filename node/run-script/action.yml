@@ -1,6 +1,10 @@
 name: "Run a script in a Node.js environment"
 description: "Checkout code, set up Node, install packages and run the specified script"
 inputs:
+  fetch-depth:
+    description: "Depth for the repository checkout"
+    required: false
+    default: "1"
   script:
     description: "The script to run"
     required: true
@@ -10,12 +14,18 @@ inputs:
   node-version-file:
     description: "File containing the Node version to use, for example .nvmrc, .node-version, package.json. Ignored if node-version is also specified. If neither are specified, the system version is used."
     required: false
+  npm-version:
+    description: "NPM version to use. If unspecified, the system version is used."
+    required: false
   package-manager:
     description: "The package manager to use - npm or yarn"
     required: false
     default: npm
   registry-url:
     description: "Registry to set up for auth. Credentials must be set in the NODE_AUTH_TOKEN environment variable."
+    required: false
+  run-build:
+    description: "Run the 'npm run build' command before pre-commit"
     required: false
   working-directory:
     description: "The working directory to use"
@@ -25,6 +35,8 @@ runs:
   steps:
     - name: Pull repository
       uses: actions/checkout@v7
+      with:
+        fetch-depth: ${{ inputs.fetch-depth }}
 
     - name: Set up Node
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -35,6 +47,11 @@ runs:
         cache: ${{ inputs.package-manager }}
         cache-dependency-path: ${{ inputs.working-directory }}
 
+    - name: Install npm
+      if: ${{ inputs.npm-version != '' }}
+      shell: bash
+      run: npm install -g npm@${{ inputs.npm-version }}
+
     - name: Install dependencies
       working-directory: ${{ inputs.working-directory }}
       shell: bash
@@ -42,6 +59,11 @@ runs:
         PKG_MGR: ${{ inputs.package-manager }}
       run: |
         [[ $PKG_MGR == npm ]] && npm ci --include-workspace-root || yarn install --frozen-lockfile
+
+    - name: Run npm build
+      if: ${{ inputs.run-build == 'true' }}
+      shell: bash
+      run: npm run build
 
     - name: Run script
       working-directory: ${{ inputs.working-directory }}
