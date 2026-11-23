@@ -1,0 +1,36 @@
+name: "Check SAM stack updated"
+description: "Poll a CloudFormation stack until it finishes updating, failing if it rolls back"
+inputs:
+  gh-polling-role:
+    description: "The ARN of the role to assume when polling the stack"
+    required: true
+  stack-name:
+    description: "The name of the stack to wait for"
+    required: true
+  aws-region:
+    description: "AWS region to use"
+    required: false
+    default: eu-west-2
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
+      with:
+        python-version: "3.12"
+
+    - name: Install requirements
+      shell: bash
+      run: pip install -r ${{ github.action_path }}/requirements.txt
+
+    - name: Assume AWS Role
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+      with:
+        role-to-assume: ${{ inputs.gh-polling-role }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Poll stack status
+      shell: bash
+      env:
+        STACK_NAME: ${{ inputs.stack-name }}
+      run: python3 ${{ github.action_path }}/api_call.py
