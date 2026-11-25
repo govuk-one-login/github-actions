@@ -1,0 +1,46 @@
+name: Terracost compare test
+
+on: pull_request
+permissions:
+  contents: read
+
+concurrency:
+  group: test-terracost-compare-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v7
+
+      # The stub module does not exist at this older commit, so the whole module counts as added
+      - name: Compare against a commit that predates the stub module
+        id: compare
+        uses: ./terracost-compare
+        with:
+          modules: .github/stubs/terracost-compare
+          base-ref: 9450b853ed52bfea1dbc73f9e95e7f7e4be6418b
+
+      - name: Check the cost difference is a positive number
+        env:
+          DIFFERENCE: ${{ steps.compare.outputs.cost-difference-usd }}
+        run: awk -v difference="$DIFFERENCE" 'BEGIN { exit !(difference > 0) }'
+
+      - name: Use the cost difference in a condition
+        id: condition
+        if: ${{ fromJSON(steps.compare.outputs.cost-difference-usd) > 0 }}
+        run: echo "The condition on cost-difference-usd was true"
+
+      - name: Check the condition ran
+        run: |
+          [[ ${{ steps.condition.outcome }} == success ]]
+
+      - name: Check the summary lists the added resource
+        env:
+          SUMMARY: ${{ steps.compare.outputs.summary }}
+        run: |
+          grep -q 'aws_sqs_queue.terracost_test' <<< "$SUMMARY"
+          grep -q '| added |' <<< "$SUMMARY"

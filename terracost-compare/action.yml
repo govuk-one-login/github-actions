@@ -1,0 +1,131 @@
+name: "Terracost compare"
+description: "Compare the estimated AWS cost of Terraform on two git refs using Terracost. Reads .tf files only, so no AWS access is needed"
+inputs:
+  modules:
+    description: "Space-separated Terraform root module directories to estimate, relative to the repository root"
+    required: true
+  base-ref:
+    description: "Branch, tag or SHA to compare against"
+    required: false
+    default: "main"
+  head-ref:
+    description: "Branch, tag or SHA containing the change. Defaults to the pull request branch, or the ref that triggered the workflow"
+    required: false
+  regions:
+    description: "Space-separated AWS regions to load prices for. Must include every region used by the Terraform"
+    required: false
+    default: "eu-west-2 eu-west-1"
+  terracost-ref:
+    description: "Commit of cycloidio/terracost to build and use"
+    required: false
+    default: "683308f82b404bb5ff74acee4bbbd89cc6aaeee2"
+outputs:
+  summary:
+    description: "Markdown summary of the comparison. Also written to the job summary"
+    value: ${{ steps.compare.outputs.summary }}
+  cost-difference-usd:
+    description: "Estimated cost of the head ref minus the base ref, in USD with two decimals (for example 1.00 or -9.28). Use it in conditions with fromJSON()"
+    value: ${{ steps.compare.outputs.cost-difference-usd }}
+runs:
+  using: composite
+  steps:
+    - name: Checkout head ref
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ inputs.head-ref || github.head_ref || github.ref_name }}
+        path: .terracost-compare/head
+        persist-credentials: false
+
+    - name: Checkout base ref
+      uses: actions/checkout@v7
+      with:
+        ref: ${{ inputs.base-ref }}
+        path: .terracost-compare/base
+        persist-credentials: false
+
+    # One cache holds the built binary and the price dump. It changes when the Terracost
+    # commit changes or the month rolls over (prices are refreshed monthly).
+    - name: Get month for the cache key
+      id: month
+      shell: bash
+      run: echo "month=$(date +%Y-%m)" >> "$GITHUB_OUTPUT"
+
+    - name: Restore Terracost binary and prices
+      id: cache
+      uses: actions/cache@3edfce9056124e459a23f683a21433670d47daca # v6
+      with:
+        path: |
+          ${{ runner.temp }}/terracost
+          ${{ runner.temp }}/prices.sql.gz
+        key: terracost-${{ inputs.terracost-ref }}-${{ steps.month.outputs.month }}
+
+    - name: Start MySQL for price data
+      shell: bash
+      # Credentials and port match the ones hardcoded in Terracost's examples/terracost.go
+      run: |
+        docker run -d --name terracost-mysql -p 127.0.0.1:3306:3306 \
+          -e MYSQL_ROOT_PASSWORD=terracost -e MYSQL_DATABASE=terracost_test mysql:8.4.3
+        for _ in $(seq 1 30); do
+          docker exec terracost-mysql mysqladmin ping -h 127.0.0.1 -uroot -pterracost --silent && exit 0
+          sleep 2
+        done
+        echo "::error::MySQL did not start"
+        docker logs terracost-mysql
+        exit 1
+
+    - name: Checkout Terracost
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/checkout@v7
+      with:
+        repository: cycloidio/terracost
+        ref: ${{ inputs.terracost-ref }}
+        path: .terracost-compare/terracost
+        persist-credentials: false
+
+    - name: Set up Go
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+      with:
+        go-version: "1.25"
+        cache-dependency-path: .terracost-compare/terracost/examples/go.sum
+
+    - name: Build Terracost and load AWS prices
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: .terracost-compare/terracost/examples
+      env:
+        REGIONS: ${{ inputs.regions }}
+      run: |
+        go build -o "$RUNNER_TEMP/terracost" .
+        for region in $REGIONS; do
+          "$RUNNER_TEMP/terracost" -ingest -provider aws -ingest-region "$region"
+        done
+        docker exec terracost-mysql mysqldump -uroot -pterracost --single-transaction \
+          --set-gtid-purged=OFF terracost_test | gzip > "$RUNNER_TEMP/prices.sql.gz"
+
+    - name: Load cached prices
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        gunzip -c "$RUNNER_TEMP/prices.sql.gz" \
+          | docker exec -i terracost-mysql mysql -uroot -pterracost terracost_test
+
+    - name: Compare costs
+      id: compare
+      shell: bash
+      env:
+        MODULES: ${{ inputs.modules }}
+        BASE_REF: ${{ inputs.base-ref }}
+        HEAD_REF: ${{ inputs.head-ref || github.head_ref || github.ref_name }}
+        COMPARE: ${{ github.action_path }}/../scripts/terracost-compare/terracost-compare.py
+      run: |
+        read -ra modules <<< "$MODULES"
+        python3 "$COMPARE" "$RUNNER_TEMP/terracost" \
+          "$GITHUB_WORKSPACE/.terracost-compare/base" "$BASE_REF" \
+          "$GITHUB_WORKSPACE/.terracost-compare/head" "$HEAD_REF" \
+          "${modules[@]}"
+
+    - name: Stop MySQL
+      if: always()
+      shell: bash
+      run: docker rm -f terracost-mysql
