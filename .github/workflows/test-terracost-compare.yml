@@ -1,6 +1,12 @@
 name: Terracost compare test
 
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - terracost-compare/**
+      - scripts/terracost-compare/**
+      - .github/stubs/terracost-compare/**
+      - .github/workflows/test-terracost-compare.yml
 permissions:
   contents: read
 
