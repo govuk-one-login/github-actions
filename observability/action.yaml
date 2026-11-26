@@ -1,0 +1,86 @@
+name: "Record workflow metric"
+description: |
+  Record a workflow run using Open Telemetry metrics in AWS
+
+inputs:
+  otlp-role-arn:
+    description: "The ARN of the AWS role to assume to send data to the AWS OTLP endpoint"
+    required: false
+  workflow-name:
+    description: "The name of the calling workflow"
+    required: true
+  current-branch-name:
+    description: "The name of the branch this workflow is being called on"
+    required: true
+
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS Credentials
+      if: ${{ inputs.otlp-role-arn != null }}
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # pin@6.3.0
+      with:
+        role-to-assume: ${{ inputs.otlp-role-arn }}
+        aws-region: eu-west-2
+
+    - name: Set current unix timestamp in nanoseconds as env variable
+      if: ${{ always() }}
+      shell: bash
+      run: echo "NOW=$(date +%s%N)" >> $GITHUB_ENV
+
+    - name: Send OTEL metric to AWS OTLP
+      if: ${{ always() }}
+      shell: bash
+      run: |
+        curl -sS -i -X POST "https://monitoring.${{ env.AWS_REGION }}.amazonaws.com/v1/metrics" \
+        --aws-sigv4 "aws:amz:${{ env.AWS_REGION }}:monitoring" \
+        --user "${{ env.AWS_ACCESS_KEY_ID }}:${{ env.AWS_SECRET_ACCESS_KEY }}" \
+        -H "x-amz-security-token: ${{ env.AWS_SESSION_TOKEN }}" \
+        -H "Content-Type: application/json" \
+        --data-binary '{
+          "resourceMetrics": [{
+            "resource": {
+              "attributes": [{"key": "service.name", "value": {"stringValue": "github-actions"}}]
+            },
+            "scopeMetrics": [{
+              "scope": {"name": "ci-github-actions"},
+              "metrics": [{
+                "name": "ci_github_actions_workflow_runs",
+                "description": "Test Github Actions metric",
+                "unit": "{run}",
+                "sum": {
+                  "isMonotonic": true,
+                  "aggregationTemporality": "AGGREGATION_TEMPORALITY_DELTA",
+                  "dataPoints": [{
+                    "startTimeUnixNano": "${{ env.NOW }}",
+                    "timeUnixNano": "${{ env.NOW }}",
+                    "asInt": 1,
+                    "attributes": [
+                      {
+                        "key": "status",
+                        "value": {"stringValue": "${{ job.status }}"}
+                      },
+                      {
+                        "key": "repo",
+                        "value": {"stringValue": "${{ github.repository }}"}
+                      },
+                      {
+                        "key": "repo_id",
+                        "value": {"stringValue": "${{ github.repository_id }}"}
+                      },
+                      {
+                        "key": "workflow_name",
+                        "value": {"stringValue": "${{ inputs.workflow-name }}"}
+                      },
+                      {
+                        "key": "on_main_branch",
+                        "value": {"stringValue": "${{ inputs.current-branch-name == 'main' }}"}
+                      }
+                    ]
+                  }]
+                }
+              }]
+            }]
+          }]
+        }'

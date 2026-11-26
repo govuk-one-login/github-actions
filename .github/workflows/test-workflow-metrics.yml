@@ -1,0 +1,82 @@
+name: Record workflow metric test
+
+on: pull_request
+permissions: {}
+
+concurrency:
+  group: test-workflow-metrics-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  run-tests:
+    name: Test action
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: test-access-key
+      AWS_REGION: eu-west-2
+      AWS_SECRET_ACCESS_KEY: test-secret-access-key
+      AWS_SESSION_TOKEN: test-session-token
+    steps:
+      - name: Pull repository
+        uses: actions/checkout@v7
+
+      - name: Set up stub curl
+        run: echo "./.github/stubs/curl" >> "$GITHUB_PATH"
+
+      - name: Record workflow metric
+        uses: ./observability
+        with:
+          workflow-name: ${{ github.workflow }}
+          current-branch-name: ${{ github.ref_name }}
+
+      - name: Verify OTLP request
+        shell: bash
+        env:
+          EXPECTED_REPOSITORY: ${{ github.repository }}
+          EXPECTED_REPOSITORY_ID: ${{ github.repository_id }}
+          EXPECTED_WORKFLOW: ${{ github.workflow }}
+          EXPECTED_ON_MAIN_BRANCH: ${{ github.ref_name == 'main' }}
+        run: |
+          arguments_file="$RUNNER_TEMP/curl-arguments"
+          body_file="$RUNNER_TEMP/curl-body.json"
+
+          grep -Fx -- "-X" "$arguments_file"
+          grep -Fx -- "POST" "$arguments_file"
+          grep -Fx -- "https://monitoring.eu-west-2.amazonaws.com/v1/metrics" "$arguments_file"
+          grep -Fx -- "aws:amz:eu-west-2:monitoring" "$arguments_file"
+          grep -Fx -- "test-access-key:test-secret-access-key" "$arguments_file"
+          grep -Fx -- "x-amz-security-token: test-session-token" "$arguments_file"
+          grep -Fx -- "Content-Type: application/json" "$arguments_file"
+
+          jq -e '
+            .resourceMetrics[0].resource.attributes == [
+              {"key": "service.name", "value": {"stringValue": "github-actions"}}
+            ] and
+            .resourceMetrics[0].scopeMetrics[0].scope.name == "ci-github-actions" and
+            .resourceMetrics[0].scopeMetrics[0].metrics[0].name == "ci_github_actions_workflow_runs" and
+            .resourceMetrics[0].scopeMetrics[0].metrics[0].unit == "{run}" and
+            .resourceMetrics[0].scopeMetrics[0].metrics[0].sum.isMonotonic == true and
+            .resourceMetrics[0].scopeMetrics[0].metrics[0].sum.aggregationTemporality ==
+              "AGGREGATION_TEMPORALITY_DELTA" and
+            .resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0].asInt == 1
+          ' "$body_file"
+
+          data_point='.resourceMetrics[0].scopeMetrics[0].metrics[0].sum.dataPoints[0]'
+          start_time=$(jq -r "$data_point.startTimeUnixNano" "$body_file")
+          end_time=$(jq -r "$data_point.timeUnixNano" "$body_file")
+          [[ $start_time =~ ^[0-9]{19}$ ]]
+          [[ $start_time == "$end_time" ]]
+
+          assert_attribute() {
+            jq -e --arg key "$1" --arg value "$2" "
+              [$data_point.attributes[] |
+                select(.key == \$key and .value.stringValue == \$value)] |
+              length == 1
+            " "$body_file"
+          }
+
+          assert_attribute status success
+          assert_attribute repo "$EXPECTED_REPOSITORY"
+          assert_attribute repo_id "$EXPECTED_REPOSITORY_ID"
+          assert_attribute workflow "$EXPECTED_WORKFLOW"
+          assert_attribute on_main_branch "$EXPECTED_ON_MAIN_BRANCH"
