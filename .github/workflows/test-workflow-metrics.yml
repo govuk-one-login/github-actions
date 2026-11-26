@@ -25,6 +25,9 @@ jobs:
 
       - name: Record workflow metric
         uses: ./observability
+        with:
+          workflow-name: ${{ github.workflow }}
+          current-branch-name: ${{ github.ref_name }}
 
       - name: Verify OTLP request
         shell: bash
