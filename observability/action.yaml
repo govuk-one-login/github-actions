@@ -9,6 +9,10 @@ inputs:
   workflow-name:
     description: "The name of the calling workflow"
     required: true
+  current-branch-name:
+    description: "The name of the branch this workflow is being called on"
+    required: true
+
 
 runs:
   using: composite
@@ -71,7 +75,7 @@ runs:
                       },
                       {
                         "key": "on_main_branch",
-                        "value": {"stringValue": "${{ github.ref_name == 'main' }}"}
+                        "value": {"stringValue": "${{ inputs.current-branch-name == 'main' }}"}
                       }
                     ]
                   }]
